@@ -1,0 +1,1 @@
+sbatch ./bash/delta/base.slurm

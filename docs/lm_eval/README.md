@@ -1,0 +1,1 @@
+This folder contains useful instructions for using [lm-eval](https://github.com/EleutherAI/lm-evaluation-harness), a framework for evaluating language models.

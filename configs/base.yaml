@@ -1,0 +1,2 @@
+hf_hub_token: "your_huggingface_token_here"
+export_hub_model_id: "mtybilly/base_repo"

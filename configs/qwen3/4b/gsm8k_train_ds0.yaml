@@ -1,6 +1,6 @@
 ### model
 model_name_or_path: Qwen/Qwen3-4B-Instruct-2507
-cache_dir: ./.cache
+cache_dir: /scratch365/tma2/.cache/
 trust_remote_code: true
 enable_thinking: true
 
@@ -11,6 +11,7 @@ flash_attn: fa2
 ### method
 stage: sft
 do_train: true
+do_predict: true
 finetuning_type: lora
 lora_rank: 8
 lora_target: all
@@ -26,7 +27,7 @@ preprocessing_num_workers: 8
 dataloader_num_workers: 4
 
 ### output
-output_dir: Experiments/qwen3-4B/GSM8K/sft/lora/train
+output_dir: outputs/qwen3-4b/gsm8k/sft/lora/train
 logging_steps: 10
 save_steps: 500
 plot_loss: true
@@ -52,9 +53,10 @@ greater_is_better: false
 
 ### eval
 eval_dataset: gsm8k_eval
-per_device_eval_batch_size: 4
+per_device_eval_batch_size: 12
 eval_strategy: steps
 eval_steps: 500
-compute_accuracy: true
+# compute_accuracy: true
+predict_with_generate: true
 
 

@@ -4,14 +4,13 @@
 #$ -m abe            # Send mail when job begins, ends and aborts
 #$ -pe smp 16        # Specify parallel environment and legal core size
 #$ -q gpu@@yye7_lab  # Run on the GPU cluster
-#$ -o ~/Projects/LLaMA-Factory/logs/$JOB_NAME_$JOB_ID.log
-#$ -l gpu_card=2     # Run on 1 GPU card
-#$ -N LLMHalluc      # Specify job name
+#$ -o ~/Projects/Halluc/logs/$JOB_NAME_$JOB_ID.log
+#$ -l gpu_card=2     # Run on 2 GPU card
+#$ -N lm_eval      # Specify job name
 
-source ~/.bashrc
-cd ~/Projects/LLaMA-Factory
-source ./bash/sys/activate_env.sh
 
+
+source ./bash/sys/init_env.sh lm_eval
 
 WANDB_PROJECT_NAME="llamafactory"
 MODEL_DIR="./models"
@@ -20,15 +19,21 @@ DDP=1
 
 STAGE="sft"
 FINETUNING_TYPE="lora"
-
-MODEL_NAME="qwen3-0.6b"
+MODEL_NAME="qwen3-4b"
 TASK_NAME="gsm8k"
-FULL_MODEL_NAME="${MODEL_NAME}-${TASK_NAME}-${FINETUNING_TYPE}"
-MODEL_PATH="${MODEL_DIR}/${FULL_MODEL_NAME}"
-OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_NAME}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/lm_eval"
-WANDB_NAME="${FULL_MODEL_NAME}"
-NUM_FEWSHOT=0
+
+NUM_FEWSHOT=8
 SEED=3
+
+# FULL_MODEL_NAME="${MODEL_NAME}-${TASK_NAME}-${FINETUNING_TYPE}"
+# MODEL_PATH="${MODEL_DIR}/${FULL_MODEL_NAME}"
+# OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_NAME}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/lm_eval/results.json"
+# WANDB_NAME="${FULL_MODEL_NAME}"
+
+MODEL_PATH="Qwen/Qwen3-4B"
+OUTPUT_PATH="${OUTPUT_DIR}/qwen3-4b/${TASK_NAME}/vanilla/lm_eval/fewshot_${NUM_FEWSHOT}/results.json"
+WANDB_NAME="qwen3-4b_gsm8k_vanilla"
+
 
 # Build the base command
 BASE_CMD="lm_eval --model hf \

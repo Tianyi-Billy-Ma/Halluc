@@ -1,8 +1,7 @@
 ### model
-model_name_or_path: Qwen/Qwen3-0.6B
+model_name_or_path: meta-llama/Llama-3.2-3B-Instruct
 cache_dir: /scratch365/tma2/.cache/
 trust_remote_code: true
-enable_thinking: true
 
 ### accelerator 
 flash_attn: fa2
@@ -20,25 +19,25 @@ lora_target: all
 ### dataset
 dataset: gsm8k_train
 dataset_dir: ./data
-template: qwen3
+template: llama3
 cutoff_len: 2048
 overwrite_cache: true
 preprocessing_num_workers: 8
 dataloader_num_workers: 4
 
 ### output
-output_dir: outputs/qwen3-0.6b/gsm8k/sft/lora/train
+output_dir: outputs/llama-3.2-3b/gsm8k/sft/lora/train
 logging_steps: 10
 save_steps: 500
 plot_loss: true
 overwrite_output_dir: true
 save_only_model: false
 report_to: wandb
-run_name: qwen3_0.6b_gsm8k_lora_sft
+run_name: llama-3.2-3b_gsm8k_lora_sft
 
 ### train
 per_device_train_batch_size: 4
-gradient_accumulation_steps: 8
+gradient_accumulation_steps: 4
 learning_rate: 1.0e-4
 num_train_epochs: 3.0
 lr_scheduler_type: cosine

@@ -1,4 +1,26 @@
 {
+    "gsm8k_bt_train": {
+        "hf_hub_url": "mtybilly/GSM-Symbolic-Backtrack",
+        "formatting": "alpaca",
+        "split": "test",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "backtrack_content": "backtrack_content",
+            "response": "modified_response"
+        }
+    },
+    "gsm8k_bt_eval": {
+        "hf_hub_url": "mtybilly/GSM-Symbolic-Backtrack",
+        "formatting": "alpaca",
+        "split": "test",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "backtrack_content": "EMPTY",
+            "response": "response"
+        }
+    },
     "gsm8k_train": {
         "hf_hub_url": "mtybilly/GSM8K",
         "formatting": "alpaca",

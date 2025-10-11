@@ -43,8 +43,8 @@ def main(arg_list: list[str] = None):
         processor=converter,
         repeat=args.repeat,
         num_proc=args.num_proc,
+        push_to_hub=args.hf_push_url,
     )
-    processed_dataset.push_to_hub(args.dataset_name, private=True)
 
 
 if __name__ == "__main__":

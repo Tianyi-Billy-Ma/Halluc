@@ -87,5 +87,31 @@
 - **File formats**: JSON for aggregated results, JSONL for samples, pickle for cache, YAML for configs
 - **Append mode usage**: JSONL files use append mode ("a") in `save_results_samples()` at line 337
 
+### LM-Evaluation-Harness CLI Arguments
+- **CLI argument definition**: Located in `lm_eval/__main__.py` in the `setup_parser()` function
+- **Thinking functionality**: Already implemented in model classes with `think_end_token` and `enable_thinking` parameters
+- **Adding new CLI args**: Add to `setup_parser()` function around line 293, then pass to `evaluator.simple_evaluate()` around line 459-487
+- **Existing thinking support**: HFLM class supports `think_end_token` (str/int) and `enable_thinking` (bool) parameters
+- **Post-processing**: `postprocess_generated_text()` in `lm_eval/models/utils.py` handles stripping thinking content
+
+## Algorithm Fixes
+
+### cs_alg function in llmhalluc/utils/alg_utils.py
+- **Issue**: Original implementation collected ALL common subarrays including overlapping ones, causing index logic errors downstream
+- **Problem**: The function returned overlapping segments which broke the assumption in gsm8k.py that segments are sequential
+- **Correct behavior**: Function should return ONLY the matching segments (anchor points), not diverging segments
+- **Solution**: Use Python's `difflib.SequenceMatcher` to find matching blocks efficiently
+- **Example**: For A=[1,2,3,4,5] and B=[1,9,8,4,5], should return ([(0,1), (3,5)], [(0,1), (3,5)]) - only matches
+- **Key insight**: The gaps between matching segments are the diverging regions, which gsm8k.py handles separately
+
+### GSM8KSymbolicDatasetConverter edge cases in llmhalluc/data/gsm8k.py
+- **Bug #1**: Line 134 used `if not backtrack_idx:` which fails when `backtrack_idx=0`. **Fix**: Use `if backtrack_idx is None:`
+- **Bug #2**: Line 135 calculated `backtrack_idx = len(modified_sub_ids)` incorrectly (should be cumulative). **Fix**: Use `len(modified_token_ids) + len(modified_sub_ids)`
+- **Bug #3**: Line 143 accessed `sym_next_start` outside loop causing `NameError`. **Fix**: Move inside loop, use `sym_lcs_pairs[-1][0]` for final segment
+- **Edge case #1**: Identical responses cause `num_candidates=0`, leading to `np.random.choice` error. **Fix**: Early return when identical
+- **Edge case #2**: Empty cs_alg results cause index errors. **Fix**: Initialize with boundary pairs `[(0,0), (len,len)]` if empty
+- **Edge case #3**: All `chosen_candidates` are False leaves `backtrack_idx=None`. **Fix**: Ensure at least one divergence is chosen
+- **Edge case #4**: Backtrack token encoding to multiple tokens breaks logic. **Fix**: Validate in `__post_init__` that it encodes to exactly one token
+- **Best practice**: Enhanced assertion messages with actual vs expected values for better debugging
 
 

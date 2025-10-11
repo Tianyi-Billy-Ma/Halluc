@@ -11,6 +11,8 @@ def process_dataset(
     split: str | list[str] | None = None,
     repeat: int = 1,
     num_proc: int = 12,
+    hf_push_url: str | None = None,
+    force_push: bool = False,
     **kwargs,
 ) -> Dataset | DatasetDict:
     """Process dataset using a converter function.
@@ -25,6 +27,8 @@ def process_dataset(
         split: Dataset split(s) to process.
         repeat: Number of times to repeat the dataset (only for train split).
         num_proc: Number of processes for parallel processing.
+        hf_push_url: HuggingFace Hub URL to push the dataset to.
+        force_push: If True, force push even if dataset hasn't changed.
         **kwargs: Additional arguments for dataset.map().
     """
     if isinstance(dataset, DatasetDict):
@@ -40,6 +44,7 @@ def process_dataset(
                 split=s,
                 repeat=repeat,
                 num_proc=num_proc,
+                force_push=force_push,
                 **kwargs,
             )
     else:
@@ -56,6 +61,16 @@ def process_dataset(
             num_proc=num_proc,
             remove_columns=column_names,
             **kwargs,
+        )
+    if hf_push_url is not None:
+        from datetime import datetime
+
+        commit_msg = f"Update dataset - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        dataset_to_return.push_to_hub(
+            hf_push_url,
+            private=False,
+            commit_message=commit_msg,
+            revision="main",  # Force push to main branch
         )
     return dataset_to_return
 

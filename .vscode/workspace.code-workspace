@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../../ReVISE"
+		},
+		{
+			"path": "../../Self-Backtracking"
 		}
 	],
 	"settings": {}

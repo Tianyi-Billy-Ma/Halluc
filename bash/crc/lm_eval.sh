@@ -37,7 +37,7 @@ WANDB_NAME="qwen3-4b_gsm8k_vanilla"
 
 # Build the base command
 BASE_CMD="lm_eval --model hf \
-    --model_args pretrained=${MODEL_PATH} \
+    --model_args pretrained=${MODEL_PATH},enable_thinking=False\
     --tasks ${TASK_NAME} \
     --output_path ${OUTPUT_PATH} \
     --num_fewshot ${NUM_FEWSHOT} \

@@ -109,7 +109,7 @@ if __name__ == "__main__":
         "--hf_dataset_url",
         "apple/GSM-Symbolic",
         "--hf_push_url",
-        "GSM-Symbolic-Backtrack",
+        "GSM8K-Symbolic-Backtrack",
         "--subset",
         "main",
         "--num_proc",

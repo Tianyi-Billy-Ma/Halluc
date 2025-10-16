@@ -1,17 +1,17 @@
 {
     "gsm8k_bt_train": {
-        "hf_hub_url": "mtybilly/GSM-Symbolic-Backtrack",
+        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack",
         "formatting": "alpaca",
         "split": "test",
         "columns": {
             "prompt": "prompt",
             "query": "query",
             "backtrack_content": "backtrack_content",
-            "response": "modified_response"
+            "response": "backtrack_response"
         }
     },
     "gsm8k_bt_eval": {
-        "hf_hub_url": "mtybilly/GSM-Symbolic-Backtrack",
+        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack",
         "formatting": "alpaca",
         "split": "test",
         "columns": {

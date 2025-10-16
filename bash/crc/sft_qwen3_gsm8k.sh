@@ -4,12 +4,12 @@
 #$ -m abe            # Send mail when job begins, ends and aborts
 #$ -pe smp 32        # Specify parallel environment and legal core size
 #$ -q gpu@@yye7_lab  # Run on the GPU cluster
-#$ -o ~/Projects/Halluc/logs/$JOB_NAME_$JOB_ID.log
+#$ -o ~/Projects/Halluc/logs/log_$JOB_NAME_$JOB_ID.log
 #$ -l gpu_card=4     # Run on 1 GPU card
 #$ -N llmhalluc      # Specify job name
 
 # RUN_CONFIG="./configs/qwen3/0.6b/gsm8k_train.yaml"
-RUN_CONFIG="./configs/qwen3/4b/gsm8k_bt_train_ds0.yaml"
+RUN_CONFIG="./configs/qwen3/4b/gsm8k_train_ds0.yaml"
 
 source ./bash/sys/init_env.sh llamafactory
 

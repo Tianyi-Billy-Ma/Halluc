@@ -1,0 +1,57 @@
+# Default configuration for lm_eval evaluation runs
+# This YAML file contains commonly used parameters for running evaluations.
+# CLI arguments will override these values.
+
+# Model configuration
+model: "hf"  # Model type (e.g., "hf", "vllm", "openai")
+model_args: null  # Model arguments as string or dict, e.g., "pretrained=EleutherAI/pythia-160m,dtype=float32"
+
+# Tasks to evaluate
+tasks: null  # Comma-separated task names or list (REQUIRED - must be specified here or via CLI)
+
+# Few-shot configuration
+num_fewshot: 0  # Number of examples in few-shot context
+
+# Batch and device settings
+batch_size: "auto"  # Batch size: "auto", "auto:N", or integer N
+max_batch_size: null  # Maximum batch size for auto mode
+device: null  # Device to use (e.g., "cuda", "cuda:0", "cpu")
+
+# Output configuration
+output_path: null  # Path to save results (directory or .json file)
+log_samples: true  # Save individual model outputs for analysis
+predict_only: false  # Only generate predictions without computing metrics
+
+# Data sampling
+limit: null  # Limit number of examples (integer or fraction <1)
+samples: null  # JSON string or path to file with specific doc indices
+
+# Caching
+use_cache: null  # Path to sqlite db for caching model responses
+cache_requests: null  # Cache dataset requests: "true", "refresh", or "delete"
+
+# Evaluation settings
+check_integrity: false  # Run task test suite
+write_out: false  # Print prompts for first few documents
+show_config: false  # Show full task config at end
+
+# Task and prompt configuration
+include_path: null  # Additional paths for external tasks (will default to configs/lm_eval/tasks)
+system_instruction: null  # System instruction for prompts
+apply_chat_template: false  # Apply chat template to prompts (true or template name)
+fewshot_as_multiturn: false  # Use fewshot as multi-turn conversation
+gen_kwargs: null  # Generation kwargs for greedy_until tasks (JSON or comma-separated)
+
+# Logging and tracking
+verbosity: null  # Logging verbosity (CRITICAL|ERROR|WARNING|INFO|DEBUG)
+wandb_args: ""  # Wandb init args, e.g., "project=lm-eval,entity=my-team"
+wandb_config_args: ""  # Additional wandb config args to trace
+hf_hub_log_args: ""  # HuggingFace Hub logging args
+
+# Reproducibility
+seed: "0,1234,1234,1234"  # Seeds for random,numpy,torch,fewshot (comma-separated or single int)
+
+# Advanced options
+trust_remote_code: false  # Execute code for HF Datasets from Hub
+confirm_run_unsafe_code: false  # Confirm running unsafe code for tasks
+metadata: null  # JSON metadata for task configs

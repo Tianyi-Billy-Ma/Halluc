@@ -358,7 +358,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         else simple_parse_args_string(args.metadata)
     )
 
-    task_manager = TaskManager(include_path=args.include_path, metadata=metadata)
+    # >>>>>>>>
+    # We add the custom tasks to the include path here.
+    task_manager = TaskManager(
+        include_path=[args.include_path] + ["./llmhalluc/tasks"], metadata=metadata
+    )
+    # <<<<<<<<
+    # task_manager = TaskManager(
+    #     include_path=args.include_path, metadata=metadata
+    # )
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(

@@ -1,0 +1,29 @@
+# Test configuration for quick validation (uses tiny model and small limit)
+# Usage: python llmhalluc/run_eval.py --config configs/lm_eval/run/test_run.yaml
+
+# Model configuration - using a small test model
+model: "hf"
+model_args: "pretrained=gpt2,dtype=float32"
+
+# Task to evaluate
+tasks: "gsm8k_custom"
+
+# Few-shot configuration
+num_fewshot: 0  # 0-shot for quick testing
+
+# Batch and device settings
+batch_size: 1
+device: "cpu"  # Use CPU for testing
+
+# Output configuration
+output_path: "results/test_gsm8k"
+log_samples: false  # Don't save samples for quick test
+
+# Limit to just a few examples for testing
+limit: 5
+
+# Wandb logging disabled for testing
+wandb_args: ""
+
+# Reproducibility
+seed: "42,42,42,42"

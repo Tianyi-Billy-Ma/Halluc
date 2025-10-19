@@ -22,8 +22,6 @@ This project contains the source code for training and evaluation of large langu
 
 ## Recent Changes
 
-- Added `llmhalluc/scripts/run_lm_eval.py` runner and `configs/lm_eval/default.yaml` for config-driven evaluations.
-- Added GSM8K evaluation implementation plan in `docs/lm_eval/gsm8k_custom_eval_plan.md`.
 - Setup the project and relevant packages. 
 
 ## Current Tasks

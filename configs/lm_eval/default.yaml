@@ -1,0 +1,22 @@
+# Default configuration for running lm-evaluation-harness through
+# llmhalluc/scripts/run_lm_eval.py. Update model/model_args as needed.
+
+include_path:
+  - llmhalluc/lm_eval_tasks
+
+model: hf
+model_args:
+  pretrained: Qwen/Qwen3-4B
+  dtype: float16
+
+tasks:
+  - gsm8k_cot
+
+num_fewshot: 0
+batch_size: auto
+log_samples: true
+gen_kwargs:
+  max_new_tokens: 512
+  temperature: 0.0
+
+output_path: Experiments/lm_eval/gsm8k_default

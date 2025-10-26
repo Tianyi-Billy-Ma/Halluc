@@ -94,6 +94,19 @@
 - **Existing thinking support**: HFLM class supports `think_end_token` (str/int) and `enable_thinking` (bool) parameters
 - **Post-processing**: `postprocess_generated_text()` in `lm_eval/models/utils.py` handles stripping thinking content
 
+## Script Validation
+
+### e2e.sh script validation
+- **Syntax**: Valid bash syntax with no syntax errors
+- **Critical Issue**: Line 101 uses undefined variable `${OUTPUT_PATH}` - should be `${EVAL_OUTPUT_PATH}`
+- **Dependencies**: All referenced config files and directories exist
+- **Runtime Issues**: `llamafactory-cli` and `lm_eval` commands not found in current PATH (requires proper environment activation)
+- **Recommendations**: 
+  1. Fix undefined variable on line 101
+  2. Add command availability checks after environment activation
+  3. Verify conda environment contains required packages
+- **Overall**: Script is mostly valid but needs the undefined variable fix to run correctly
+
 ## Algorithm Fixes
 
 ### cs_alg function in llmhalluc/utils/alg_utils.py

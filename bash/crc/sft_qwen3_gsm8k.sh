@@ -8,11 +8,10 @@
 #$ -l gpu_card=4     # Run on 1 GPU card
 #$ -N llmhalluc      # Specify job name
 
-# RUN_CONFIG="./configs/qwen3/0.6b/gsm8k_train.yaml"
-RUN_CONFIG="./configs/llamafactory/qwen3/4b/gsm8k_train_ds0.yaml"
+MODEL_SIZE="0.6b"
+RUN_CONFIG="./configs/llamafactory/qwen3/${MODEL_SIZE}/gsm8k_bt_train_ds0.yaml"
 
 source ./bash/sys/init_env.sh llamafactory
 
 ./bash/sys/log_yaml.sh $RUN_CONFIG
 llamafactory-cli train $RUN_CONFIG
-# llamafactory-cli train ./configs/qwen3/0.6B/gsm8k_eval.yaml

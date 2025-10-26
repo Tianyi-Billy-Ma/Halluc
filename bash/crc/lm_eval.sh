@@ -30,9 +30,9 @@ SEED=3
 # OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_NAME}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/lm_eval/results.json"
 # WANDB_NAME="${FULL_MODEL_NAME}"
 
-MODEL_PATH="Qwen/Qwen3-4B"
-OUTPUT_PATH="${OUTPUT_DIR}/qwen3-4b/${TASK_NAME}/vanilla/lm_eval/fewshot_${NUM_FEWSHOT}/results.json"
-WANDB_NAME="qwen3-4b_gsm8k_vanilla"
+MODEL_PATH="Qwen/Qwen3-0.6B"
+OUTPUT_PATH="${OUTPUT_DIR}/qwen3-0.6b/${TASK_NAME}/vanilla/lm_eval/fewshot_${NUM_FEWSHOT}/results.json"
+WANDB_NAME="qwen3-0.6b_gsm8k_vanilla"
 
 
 # Build the base command

@@ -361,7 +361,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     # >>>>>>>>
     # We add the custom tasks to the include path here.
     task_manager = TaskManager(
-        include_path=[args.include_path] + ["./llmhalluc/tasks"], metadata=metadata
+        include_path=["./llmhalluc/tasks"]
+        if args.include_path is None
+        else [args.include_path, "./llmhalluc/tasks"],
+        metadata=metadata,
     )
     # <<<<<<<<
     # task_manager = TaskManager(

@@ -1575,3 +1575,13 @@ class HFLM(TemplateLM):
         if self.delta:
             model_info["delta_sha"] = get_model_sha(self.delta, self.revision)
         return model_info
+
+
+@register_model("hf-bt")
+class HFLMBT(HFLM):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.backtrack_token = "seq2seq"
+
+    def tok_decode(self, tokens: list[int], skip_special_tokens: bool = True) -> str:
+        return super().tok_decode(tokens, skip_special_tokens)

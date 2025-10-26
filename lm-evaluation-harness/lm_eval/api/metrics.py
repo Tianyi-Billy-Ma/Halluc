@@ -10,12 +10,78 @@ from typing import Callable, List, Optional, Sequence, TypeVar
 import numpy as np
 import sacrebleu
 
+try:
+    import evaluate
+
+    rouge = evaluate.load("rouge")
+
+except (ModuleNotFoundError, ImportError):
+    raise ModuleNotFoundError(
+        "Please install evaluation metrics via pip install evaluate",
+    )
+except Exception as e:
+    raise RuntimeError(
+        f"Error loading evaluation metrics: {str(e)}. Please check your installation."
+    )
+
+
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
 T = TypeVar("T")
 
 eval_logger = logging.getLogger(__name__)
+
+
+@register_aggregation("rouge1")
+def rouge1_agg(arr):
+    refs = list(zip(*arr))[0]
+    preds = list(zip(*arr))[1]
+    return rouge.compute(predictions=preds, references=refs)["rouge1"]
+
+
+@register_aggregation("rouge2")
+def rouge2_agg(arr):
+    refs = list(zip(*arr))[0]
+    preds = list(zip(*arr))[1]
+    return rouge.compute(predictions=preds, references=refs)["rouge2"]
+
+
+@register_aggregation("rougeL")
+def rougeL_agg(arr):
+    refs = list(zip(*arr))[0]
+    preds = list(zip(*arr))[1]
+    return rouge.compute(predictions=preds, references=refs)["rougeL"]
+
+
+@register_metric(
+    metric="rouge1",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="rouge1",
+)
+def rouge1_fn(items):
+    return items  # This is a passthrough function
+
+
+@register_metric(
+    metric="rouge2",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="rouge2",
+)
+def rouge2_fn(items):
+    return items  # This is a passthrough function
+
+
+@register_metric(
+    metric="rougeL",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="rougeL",
+)
+def rougeL_fn(items):
+    return items  # This is a passthrough function
 
 
 # Register Aggregations First

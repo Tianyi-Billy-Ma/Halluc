@@ -1,0 +1,17 @@
+## model 
+model_name_or_path: Qwen/Qwen3-0.6B
+adapter_name_or_path: outputs/qwen3-0.6b/gsm8k/sft/lora/train
+cache_dir: /scratch365/tma2/.cache/
+trust_remote_code: true
+template: qwen3
+
+
+### export 
+export_dir: models/qwen3-0.6b-gsm8k-lora
+export_size: 2
+export_device: auto
+export_legacy_format: false
+
+
+### huggingface
+export_hub_model_id: mtybilly/qwen3-0.6b-gsm8k-lora

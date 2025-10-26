@@ -192,7 +192,6 @@ predictions_score.json
 **/Experiments/*
 
 # Ignore all data directories by default
-**/data/*
 **/outputs/
 **/models/
 **/logs/

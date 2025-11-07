@@ -1,3 +1,4 @@
+# Train Options
 # model_name_or_path: null
 # enable_thinking: null
 # output_dir: null
@@ -6,6 +7,12 @@
 # run_name: null
 # dataset: null
 # eval_dataset: null
+
+# Export Options
+# adapter_name_or_path: null
+# template: null
+# export_dir: null
+# export_hub_model_id: null
 
 trust_remote_code: true
 ### accelerator 
@@ -63,3 +70,10 @@ predict_with_generate: true
 # add_special_tokens: "<|BACKTRACK|>"
 new_special_tokens_config: ./configs/llamafactory/token.yaml
 init_special_tokens: desc_init
+add_special_tokens: "<|BACKTRACK|>"
+
+
+### Export 
+export_size: 2
+export_device: auto
+export_legacy_format: false

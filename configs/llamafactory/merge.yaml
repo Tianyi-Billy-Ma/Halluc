@@ -11,5 +11,6 @@ export_device: auto
 export_legacy_format: false
 
 ### Special Tokens
-add_special_tokens: "<|BACKTRACK|>"
 new_special_tokens_config: ./configs/llamafactory/token.yaml
+force_init_embeddings: true
+

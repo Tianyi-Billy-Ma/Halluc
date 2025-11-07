@@ -180,6 +180,9 @@ def patch_model(
             tokenizer,
             new_special_tokens_config=getattr(model_args, "_special_token_descriptions", None),
             init_special_tokens=model_args.init_special_tokens,
+            # >>>>>>>>
+            force_init_embeddings=model_args.force_init_embeddings,
+            # <<<<<<<<
         )
 
     if is_trainable:

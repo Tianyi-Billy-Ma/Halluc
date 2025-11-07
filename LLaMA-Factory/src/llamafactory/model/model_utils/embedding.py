@@ -77,11 +77,32 @@ def _description_based_initialization(
         }
     """
     embedding_dim = embed_weight.size(1)
-
-    for i, desc in enumerate(descriptions.values()):
+    # >>>>>>>>
+    embed_vocab_size = embed_weight.size(0)
+    if embed_vocab_size > len(tokenizer):
+        logger.warning_rank0(
+            f"Embedding vocabulary size {embed_vocab_size} is greater than tokenizer size {len(tokenizer)}, update num_new_tokens to {len(descriptions)}"
+        )
+        num_new_tokens = len(descriptions)
+    # <<<<<<<<
+    for i, (key, desc) in enumerate(descriptions.items()):
+        # <<<<<<<<
+        # for i, desc in enumerate(descriptions.values()):
+        # >>>>>>>>
         # Tokenize description text
         tokens = tokenizer(desc, return_tensors="pt", add_special_tokens=False)
 
+        # >>>>>>>>
+        special_token_id = tokenizer.convert_tokens_to_ids(key)
+        logger.info_rank0(f"Initialize new token {key} with token_id {special_token_id}.")
+        if isinstance(special_token_id, list):
+            logger.warning_rank0(f"Expected 1 special token id, got {len(special_token_id)} for key {key}")
+            special_token_id = special_token_id[0]
+        if special_token_id != len(tokenizer) - num_new_tokens + i:
+            logger.warning_rank0(
+                f"Special token id {special_token_id} is not equal to {len(tokenizer) - num_new_tokens + i} for key {key}"
+            )
+        # <<<<<<<<
         with torch.no_grad():
             token_ids = tokens["input_ids"][0]
             # Move to the same device as embed_weight
@@ -155,6 +176,9 @@ def resize_embedding_layer(
     tokenizer: "PreTrainedTokenizer",
     new_special_tokens_config: Optional[dict] = None,
     init_special_tokens: str = "noise_init",
+    # >>>>>>>>
+    force_init_embeddings: bool = False,
+    # <<<<<<<<
 ) -> None:
     r"""Resize token embeddings and initialize new tokens.
 
@@ -163,6 +187,7 @@ def resize_embedding_layer(
         tokenizer: The tokenizer (used to get target vocab size)
         new_special_tokens_config: Optional dict with token descriptions for semantic initialization
         init_special_tokens: Initialization method ('noise_init', 'desc_init', 'desc_init_w_noise')
+        force_init_embeddings: Whether to force initialize the embeddings for new tokens
     """
     if is_deepspeed_zero3_enabled():
         import deepspeed  # type: ignore
@@ -177,6 +202,15 @@ def resize_embedding_layer(
 
     with context_maybe_zero3:
         current_embedding_size = model.get_input_embeddings().weight.size(0)
+        # >>>>>>>>
+        # Some embedding is rounded to the nearest multiple of 64, so we need to subtract the number of new special tokens
+        if len(tokenizer) < current_embedding_size and force_init_embeddings:
+            embedding_size = len(tokenizer) - len(new_special_tokens_config)
+            logger.info_rank0(
+                f"Force initializing embeddings for new tokens from {current_embedding_size} to {embedding_size}"
+            )
+            current_embedding_size = embedding_size
+        # <<<<<<<<
 
     if len(tokenizer) > current_embedding_size:
         if getattr(model, "quantization_method", None):
@@ -216,6 +250,3 @@ def resize_embedding_layer(
 
         model.config.vocab_size = new_embedding_size
         logger.info_rank0(f"Resized token embeddings from {current_embedding_size} to {new_embedding_size}.")
-
-        
-        

@@ -70,10 +70,15 @@ predict_with_generate: true
 # add_special_tokens: "<|BACKTRACK|>"
 new_special_tokens_config: ./configs/llamafactory/token.yaml
 init_special_tokens: desc_init
-add_special_tokens: "<|BACKTRACK|>"
 
 
 ### Export 
 export_size: 2
 export_device: auto
 export_legacy_format: false
+
+
+
+### Test 
+
+# max_samples: 100

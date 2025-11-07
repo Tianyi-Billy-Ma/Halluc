@@ -8,8 +8,11 @@
 #$ -l gpu_card=4     # Run on 1 GPU card
 #$ -N llmhalluc_e2e      # Specify job name
 
-TRAIN_CONFIG="./configs/llamafactory/train.yaml"
-MERGE_CONFIG="./configs/llamafactory/merge.yaml"
+
+# TRAIN_CONFIG="./configs/llamafactory/train.yaml"
+# MERGE_CONFIG="./configs/llamafactory/merge.yaml"
+TRAIN_CONFIG="./configs/llamafactory/default.yaml"
+MERGE_CONFIG="./configs/llamafactory/default.yaml"
 
 WANDB_PROJECT_NAME="llamafactory"
 MODEL_DIR="/scratch365/tma2/.cache/halluc/models"
@@ -42,6 +45,8 @@ EVAL_MODEL="hf-bt"
 
 
 ### Automatic Parts. You can skip.
+# Parse mode argument and set phase flags
+source ./bash/sys/parse_mode.sh "$1"
 
 # Automatically set MODEL_ABBR based on MODEL_NAME_OR_PATH
 MODEL_ABBR=$(basename "$MODEL_NAME_OR_PATH" | tr '[:upper:]' '[:lower:]')
@@ -60,80 +65,92 @@ EVAL_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING
 
 
 
-echo "================================================"
-echo "Training Phase"
-echo "================================================"
+if [ "$DO_TRAIN" = true ]; then
+    echo "================================================"
+    echo "Training Phase"
+    echo "================================================"
 
-source ./bash/sys/init_env.sh llamafactory
+    source ./bash/sys/init_env.sh llamafactory
 
-python llmhalluc/scripts/update_yaml.py \
-    --input_yaml $TRAIN_CONFIG \
-    --output_yaml $TRAIN_CONFIG_PATH \
-    model_name_or_path=$MODEL_NAME_OR_PATH \
-    enable_thinking=$ENABLE_THINKING \
-    output_dir=$TRAIN_OUTPUT_PATH \
-    stage=$STAGE \
-    finetuning_type=$FINETUNING_TYPE \
-    run_name=$WANDB_NAME\
-    dataset=$TRAIN_DATASET_NAME \
-    eval_dataset=$EVAL_DATASET_NAME 
-    # add_special_tokens="<|BACKTRACK|>"
+    python llmhalluc/scripts/update_yaml.py \
+        --input_yaml $TRAIN_CONFIG \
+        --output_yaml $TRAIN_CONFIG_PATH \
+        model_name_or_path=$MODEL_NAME_OR_PATH \
+        enable_thinking=$ENABLE_THINKING \
+        output_dir=$TRAIN_OUTPUT_PATH \
+        stage=$STAGE \
+        finetuning_type=$FINETUNING_TYPE \
+        run_name=$WANDB_NAME\
+        dataset=$TRAIN_DATASET_NAME \
+        eval_dataset=$EVAL_DATASET_NAME \
+        force_init_embeddings=true \
+        # add_special_tokens="<|BACKTRACK|>"
 
-./bash/sys/log_yaml.sh $TRAIN_CONFIG_PATH
-llamafactory-cli train $TRAIN_CONFIG_PATH
-
-echo "================================================"
-echo "Merge Models"
-echo "================================================"
-
-python llmhalluc/scripts/update_yaml.py \
-    --input_yaml $MERGE_CONFIG \
-    --output_yaml $MERGE_CONFIG_PATH \
-    model_name_or_path=$MODEL_NAME_OR_PATH \
-    adapter_name_or_path=$TRAIN_OUTPUT_PATH \
-    template=$MERGE_TEMPLATE \
-    export_dir=$MODEL_PATH \
-    export_hub_model_id=$HF_USERNAME/$WANDB_NAME 
-    # add_special_tokens="<|BACKTRACK|>"
-
-
-./bash/sys/log_yaml.sh $MERGE_CONFIG_PATH
-llamafactory-cli export $MERGE_CONFIG_PATH 
-
-echo "================================================"
-echo "Evaluation Phase"
-echo "================================================"
-
-source ./bash/sys/init_env.sh lm_eval
-
-# Build the base command
-BASE_CMD="lm_eval --model ${EVAL_MODEL} \
-    --model_args pretrained=${MODEL_PATH},enable_thinking=False\
-    --tasks ${TASK_NAME} \
-    --output_path ${EVAL_OUTPUT_PATH} \
-    --seed ${SEED} \
-    --wandb_args project=${WANDB_PROJECT_NAME},name=${WANDB_NAME} \
-    --log_samples \
-    --apply_chat_template \
-    --include_path ./configs/lm_eval/tasks"
-
-echo "================================================"
-echo "Available GPUs: $CUDA_VISIBLE_DEVICES"
-echo "Model Path: ${MODEL_PATH}"
-echo "Output Path: ${EVAL_OUTPUT_PATH}"
-echo "Num of Fewshot: ${NUM_FEWSHOT}"
-echo "Seed: ${SEED}"
-echo "================================================"
-
-# Conditionally prepend accelerate launch for DDP
-if [ $DDP -eq 1 ]; then
-    CMD="accelerate launch -m ${BASE_CMD}"
+    ./bash/sys/log_yaml.sh $TRAIN_CONFIG_PATH
+    llamafactory-cli train $TRAIN_CONFIG_PATH
 else
-    CMD="${BASE_CMD}"
+    echo "Skipping Training Phase (not in mode: $MODE)"
 fi
 
-# Execute the command
-eval $CMD
+if [ "$DO_MERGE" = true ]; then
+    echo "================================================"
+    echo "Merge Models"
+    echo "================================================"
+
+    python llmhalluc/scripts/update_yaml.py \
+        --input_yaml $MERGE_CONFIG \
+        --output_yaml $MERGE_CONFIG_PATH \
+        model_name_or_path=$MODEL_NAME_OR_PATH \
+        adapter_name_or_path=$TRAIN_OUTPUT_PATH \
+        template=$MERGE_TEMPLATE \
+        export_dir=$MODEL_PATH \
+        export_hub_model_id=$HF_USERNAME/$WANDB_NAME \
+
+
+    ./bash/sys/log_yaml.sh $MERGE_CONFIG_PATH
+    llamafactory-cli export $MERGE_CONFIG_PATH
+else
+    echo "Skipping Merge Phase (not in mode: $MODE)"
+fi 
+
+if [ "$DO_EVAL" = true ]; then
+    echo "================================================"
+    echo "Evaluation Phase"
+    echo "================================================"
+
+    source ./bash/sys/init_env.sh lm_eval
+
+    # Build the base command
+    BASE_CMD="lm_eval --model ${EVAL_MODEL} \
+        --model_args pretrained=${MODEL_PATH},enable_thinking=False\
+        --tasks ${TASK_NAME} \
+        --output_path ${EVAL_OUTPUT_PATH} \
+        --seed ${SEED} \
+        --wandb_args project=${WANDB_PROJECT_NAME},name=${WANDB_NAME} \
+        --log_samples \
+        --apply_chat_template \
+        --include_path ./configs/lm_eval/tasks"
+
+    echo "================================================"
+    echo "Available GPUs: $CUDA_VISIBLE_DEVICES"
+    echo "Model Path: ${MODEL_PATH}"
+    echo "Output Path: ${EVAL_OUTPUT_PATH}"
+    echo "Num of Fewshot: ${NUM_FEWSHOT}"
+    echo "Seed: ${SEED}"
+    echo "================================================"
+
+    # Conditionally prepend accelerate launch for DDP
+    if [ $DDP -eq 1 ]; then
+        CMD="accelerate launch -m ${BASE_CMD}"
+    else
+        CMD="${BASE_CMD}"
+    fi
+
+    # Execute the command
+    eval $CMD
+else
+    echo "Skipping Evaluation Phase (not in mode: $MODE)"
+fi
     
     
 ./bash/sys/notify.sh

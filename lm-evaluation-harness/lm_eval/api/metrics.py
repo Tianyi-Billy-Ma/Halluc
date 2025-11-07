@@ -23,32 +23,46 @@ T = TypeVar("T")
 
 eval_logger = logging.getLogger(__name__)
 
+
 # >>>>>>>>
 def backup_stderr(arr):
     if isinstance(arr, np.ndarray | list):
+        print(arr)
         return np.std(arr)
     else:
         return "N/A"
+
+
 # <<<<<<<<
 
+
+# >>>>>>>>
 @register_aggregation("rouge1")
 def rouge1_agg(arr):
     predictions, references = zip(*arr)
     return rouge_evaluator.compute(
         predictions=predictions, references=references, use_aggregator=False
     )["rouge1"]
+
+
 @register_aggregation("rouge2")
 def rouge2_agg(arr):
     predictions, references = zip(*arr)
     return rouge_evaluator.compute(
         predictions=predictions, references=references, use_aggregator=False
     )["rouge2"]
+
+
 @register_aggregation("rougeL")
 def rougeL_agg(arr):
     predictions, references = zip(*arr)
     return rouge_evaluator.compute(
         predictions=predictions, references=references, use_aggregator=False
     )["rougeL"]
+
+
+# <<<<<<<<
+
 
 # Register Aggregations First
 @register_aggregation("bypass")
@@ -616,9 +630,15 @@ def stderr_for_metric(
     if metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
-    stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
+    stderr = {
+        mean: mean_stderr,
+        acc_all: acc_all_stderr,
+        rouge1_agg: backup_stderr,
+        rouge2_agg: backup_stderr,
+        rougeL_agg: backup_stderr,
+    }
 
-    return stderr.get(metric, backup_stderr)
+    return stderr.get(metric, None)
 
 
 def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):

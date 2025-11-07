@@ -198,6 +198,12 @@ class BaseModelArguments:
         default=False,
         metadata={"help": "Whether to trust the execution of code from datasets/models defined on the Hub or not."},
     )
+    force_init_embeddings: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to force initialize the embeddings when new tokens are added and need to be resized."
+        },
+    )
 
     def __post_init__(self):
         if self.model_name_or_path is None:

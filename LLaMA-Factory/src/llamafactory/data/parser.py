@@ -30,7 +30,7 @@ class DatasetAttr:
     # basic configs
     load_from: Literal["hf_hub", "ms_hub", "om_hub", "script", "file"]
     dataset_name: str
-    formatting: Literal["alpaca", "sharegpt"] = "alpaca"
+    formatting: Literal["alpaca", "sharegpt", "openai"] = "alpaca"
     ranking: bool = False
     # extra configs
     subset: Optional[str] = None
@@ -63,10 +63,6 @@ class DatasetAttr:
     function_tag: Optional[str] = "function_call"
     system_tag: Optional[str] = "system"
 
-    # >>>>>>>>
-    backtrack_content: Optional[str] = None
-    # <<<<<<<<
-
     def __repr__(self) -> str:
         return self.dataset_name
 
@@ -84,9 +80,6 @@ class DatasetAttr:
         if "columns" in attr:
             column_names = ["prompt", "query", "response", "history", "messages", "system", "tools"]
             column_names += ["images", "videos", "audios", "chosen", "rejected", "kto_tag"]
-            # >>>>>>>>
-            column_names += ["backtrack_content"]
-            # <<<<<<<<
             for column_name in column_names:
                 self.set_attr(column_name, attr["columns"])
 

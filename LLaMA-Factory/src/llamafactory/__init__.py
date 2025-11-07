@@ -27,9 +27,5 @@ Use openmind: USE_OPENMIND_HUB=1
 
 from .extras.env import VERSION
 
-import warnings
-
-warnings.filterwarnings("ignore", category=SyntaxWarning, module=r"jieba\..*")
-warnings.filterwarnings("ignore", category=SyntaxWarning, module=r"rouge_chinese\..*")
 
 __version__ = VERSION

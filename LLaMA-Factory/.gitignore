@@ -1,13 +1,3 @@
-
-# Pattern for any large data files (>25MB)
-# Uncomment specific patterns as needed:
-**/data/**/*.csv
-**/data/**/*.parquet
-**/data/**/*.pkl
-**/data/**/*.bin
-**/data/**/*.json
-# *.safetensors
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -179,24 +169,24 @@ uv.lock
 hf_cache/
 ms_cache/
 om_cache/
-cache/
-config/
+llamaboard_cache/
+llamaboard_config/
 saves/
 output/
 wandb/
 swanlog/
 generated_predictions.jsonl
 predictions_score.json
-
+# Project-specific artifacts
 **/docs/memory/
 **/Experiments/*
 
-# Ignore all data directories by default
+# Ignore large experiment outputs by default
 **/outputs/
 **/models/
 **/logs/
 **/wandb/
 
-# Exception: Don't ignore the llmhalluc data module (source code)
+# Exception: keep the llmhalluc data module source visible in Git
 !src/llmhalluc/data/
 !src/llmhalluc/data/**

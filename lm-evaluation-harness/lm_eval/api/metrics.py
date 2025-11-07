@@ -10,79 +10,45 @@ from typing import Callable, List, Optional, Sequence, TypeVar
 import numpy as np
 import sacrebleu
 
+from lm_eval.api.registry import register_aggregation, register_metric
+
 try:
     import evaluate
 
-    rouge = evaluate.load("rouge")
-
-except (ModuleNotFoundError, ImportError):
-    raise ModuleNotFoundError(
-        "Please install evaluation metrics via pip install evaluate",
-    )
-except Exception as e:
-    raise RuntimeError(
-        f"Error loading evaluation metrics: {str(e)}. Please check your installation."
-    )
-
-
-from lm_eval.api.registry import register_aggregation, register_metric
-
+    rouge_evaluator = evaluate.load("rouge")
+except ModuleNotFoundError:
+    raise ImportError("evaluate is not installed")
 
 T = TypeVar("T")
 
 eval_logger = logging.getLogger(__name__)
 
+# >>>>>>>>
+def backup_stderr(arr):
+    if isinstance(arr, np.ndarray | list):
+        return np.std(arr)
+    else:
+        return "N/A"
+# <<<<<<<<
 
 @register_aggregation("rouge1")
 def rouge1_agg(arr):
-    refs = list(zip(*arr))[0]
-    preds = list(zip(*arr))[1]
-    return rouge.compute(predictions=preds, references=refs)["rouge1"]
-
-
+    predictions, references = zip(*arr)
+    return rouge_evaluator.compute(
+        predictions=predictions, references=references, use_aggregator=False
+    )["rouge1"]
 @register_aggregation("rouge2")
 def rouge2_agg(arr):
-    refs = list(zip(*arr))[0]
-    preds = list(zip(*arr))[1]
-    return rouge.compute(predictions=preds, references=refs)["rouge2"]
-
-
+    predictions, references = zip(*arr)
+    return rouge_evaluator.compute(
+        predictions=predictions, references=references, use_aggregator=False
+    )["rouge2"]
 @register_aggregation("rougeL")
 def rougeL_agg(arr):
-    refs = list(zip(*arr))[0]
-    preds = list(zip(*arr))[1]
-    return rouge.compute(predictions=preds, references=refs)["rougeL"]
-
-
-@register_metric(
-    metric="rouge1",
-    higher_is_better=True,
-    output_type="generate_until",
-    aggregation="rouge1",
-)
-def rouge1_fn(items):
-    return items  # This is a passthrough function
-
-
-@register_metric(
-    metric="rouge2",
-    higher_is_better=True,
-    output_type="generate_until",
-    aggregation="rouge2",
-)
-def rouge2_fn(items):
-    return items  # This is a passthrough function
-
-
-@register_metric(
-    metric="rougeL",
-    higher_is_better=True,
-    output_type="generate_until",
-    aggregation="rougeL",
-)
-def rougeL_fn(items):
-    return items  # This is a passthrough function
-
+    predictions, references = zip(*arr)
+    return rouge_evaluator.compute(
+        predictions=predictions, references=references, use_aggregator=False
+    )["rougeL"]
 
 # Register Aggregations First
 @register_aggregation("bypass")
@@ -203,6 +169,28 @@ def brier_score(items):  # This is a passthrough function
     gold = list(gold)
     gold_one_hot = np.eye(num_class)[gold]
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+
+
+@register_metric(
+    metric="rouge1",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="rouge1",
+)
+@register_metric(
+    metric="rouge2",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="rouge2",
+)
+@register_metric(
+    metric="rougeL",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="rougeL",
+)
+def rouge_score_fn(items):
+    return items  # This is a passthrough function
 
 
 @register_metric(
@@ -630,7 +618,7 @@ def stderr_for_metric(
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
-    return stderr.get(metric, None)
+    return stderr.get(metric, backup_stderr)
 
 
 def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):

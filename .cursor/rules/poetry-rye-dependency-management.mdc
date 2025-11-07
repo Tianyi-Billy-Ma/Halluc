@@ -1,5 +1,0 @@
----
-description: Specifies uv for dependency management in Python projects.
-globs: **/pyproject.toml
----
-- **Dependency Management:** uv

@@ -387,7 +387,12 @@ def simple_evaluate(
             "model_args": model_args,
         }
         # add more detailed model info if available
-        if isinstance(lm, lm_eval.models.huggingface.HFLM):
+        # if isinstance(lm, lm_eval.models.huggingface.HFLM):
+        # >>>>>>>>
+        if isinstance(
+            lm, lm_eval.models.huggingface.HFLMBT | lm_eval.models.huggingface.HFLM
+        ):
+            # <<<<<<<<
             results["config"].update(lm.get_model_info())
         # add info about execution
         results["config"].update(

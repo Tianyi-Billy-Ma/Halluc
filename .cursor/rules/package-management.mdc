@@ -1,5 +1,0 @@
----
-alwaysApply: true
----
-
-ALWAYS use `uv run` for executing Python scripts instead of `python` or `python3`

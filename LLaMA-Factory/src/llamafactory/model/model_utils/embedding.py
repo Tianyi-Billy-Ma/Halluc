@@ -69,3 +69,6 @@ def resize_embedding_layer(model: "PreTrainedModel", tokenizer: "PreTrainedToken
 
         model.config.vocab_size = new_embedding_size
         logger.info_rank0(f"Resized token embeddings from {current_embedding_size} to {new_embedding_size}.")
+
+        
+        

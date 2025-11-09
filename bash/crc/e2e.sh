@@ -9,10 +9,8 @@
 #$ -N llmhalluc_e2e      # Specify job name
 
 
-# TRAIN_CONFIG="./configs/llamafactory/train.yaml"
-# MERGE_CONFIG="./configs/llamafactory/merge.yaml"
-TRAIN_CONFIG="./configs/llamafactory/default.yaml"
-MERGE_CONFIG="./configs/llamafactory/default.yaml"
+TRAIN_CONFIG="./configs/llamafactory/train.yaml"
+MERGE_CONFIG="./configs/llamafactory/merge.yaml"
 
 WANDB_PROJECT_NAME="llamafactory"
 MODEL_DIR="/scratch365/tma2/.cache/halluc/models"
@@ -26,8 +24,8 @@ STAGE="sft"
 FINETUNING_TYPE="lora"
 
 # Model Name and Abbr
-# MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Instruct-2507"
-MODEL_NAME_OR_PATH="Qwen/Qwen3-0.6B"
+MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Instruct-2507"
+# MODEL_NAME_OR_PATH="Qwen/Qwen3-0.6B"
 ENABLE_THINKING=false
 
 
@@ -96,6 +94,8 @@ if [ "$DO_MERGE" = true ]; then
     echo "================================================"
     echo "Merge Models"
     echo "================================================"
+
+    source ./bash/sys/init_env.sh llamafactory
 
     python llmhalluc/scripts/update_yaml.py \
         --input_yaml $MERGE_CONFIG \

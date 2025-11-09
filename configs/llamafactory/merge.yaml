@@ -12,5 +12,6 @@ export_legacy_format: false
 
 ### Special Tokens
 new_special_tokens_config: ./configs/llamafactory/token.yaml
-force_init_embeddings: true
-
+force_init_embeddings: true 
+# Set force_init_embeddings to true to allow model size to match the tokenizer size.
+# It is fine in export mode, as the trained model is loaded after we resize the embeddings.

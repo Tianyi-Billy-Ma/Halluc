@@ -38,26 +38,26 @@ def backup_stderr(arr):
 
 # >>>>>>>>
 @register_aggregation("rouge1")
-def rouge1_agg(arr):
+def rouge1_agg(arr, aggregate=True):
     predictions, references = zip(*arr)
     return rouge_evaluator.compute(
-        predictions=predictions, references=references, use_aggregator=False
+        predictions=predictions, references=references, use_aggregator=aggregate
     )["rouge1"]
 
 
 @register_aggregation("rouge2")
-def rouge2_agg(arr):
+def rouge2_agg(arr, aggregate=True):
     predictions, references = zip(*arr)
     return rouge_evaluator.compute(
-        predictions=predictions, references=references, use_aggregator=False
+        predictions=predictions, references=references, use_aggregator=aggregate
     )["rouge2"]
 
 
 @register_aggregation("rougeL")
-def rougeL_agg(arr):
+def rougeL_agg(arr, aggregate=True):
     predictions, references = zip(*arr)
     return rouge_evaluator.compute(
-        predictions=predictions, references=references, use_aggregator=False
+        predictions=predictions, references=references, use_aggregator=aggregate
     )["rougeL"]
 
 
@@ -633,9 +633,11 @@ def stderr_for_metric(
     stderr = {
         mean: mean_stderr,
         acc_all: acc_all_stderr,
-        rouge1_agg: backup_stderr,
-        rouge2_agg: backup_stderr,
-        rougeL_agg: backup_stderr,
+        # >>>>>>>>
+        rouge1_agg: lambda x: mean_stderr(metric(x, aggregate=False)),
+        rouge2_agg: lambda x: mean_stderr(metric(x, aggregate=False)),
+        rougeL_agg: lambda x: mean_stderr(metric(x, aggregate=False)),
+        # <<<<<<<<
     }
 
     return stderr.get(metric, None)

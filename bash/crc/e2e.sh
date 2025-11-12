@@ -9,6 +9,11 @@
 #$ -N llmhalluc_e2e      # Specify job name
 
 
+
+# Some thing need to change 
+TRAIN_NAME="STAGE_1_EPOCH_30"
+
+
 TRAIN_CONFIG="./configs/llamafactory/train.yaml"
 MERGE_CONFIG="./configs/llamafactory/merge.yaml"
 
@@ -53,13 +58,19 @@ if [ -z "$EVAL_DATASET_NAME" ]; then
     EVAL_DATASET_NAME=$TRAIN_DATASET_NAME
 fi
 
-WANDB_NAME="${MODEL_ABBR}_${TASK_NAME}_${STAGE}_${FINETUNING_TYPE}"
+
+if [ -z "$TRAIN_NAME" ]; then
+    WANDB_NAME="${MODEL_ABBR}_${TASK_NAME}_${STAGE}_${FINETUNING_TYPE}_${TRAIN_NAME}"
+else 
+    WANDB_NAME="${MODEL_ABBR}_${TASK_NAME}_${STAGE}_${FINETUNING_TYPE}"
+fi
+    
 
 MODEL_PATH="${MODEL_DIR}/${WANDB_NAME}"
-TRAIN_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/train"
-TRAIN_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/train_config.yaml"
-MERGE_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/merge_config.yaml"
-EVAL_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/lm_eval/results.json"
+TRAIN_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/${TRAIN_NAME}"
+TRAIN_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/${TRAIN_NAME}/train_config.yaml"
+MERGE_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/${TRAIN_NAME}/merge_config.yaml"
+EVAL_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/lm_eval/${TRAIN_NAME}_results.json"
 
 
 
@@ -80,8 +91,7 @@ if [ "$DO_TRAIN" = true ]; then
         finetuning_type=$FINETUNING_TYPE \
         run_name=$WANDB_NAME\
         dataset=$TRAIN_DATASET_NAME \
-        eval_dataset=$EVAL_DATASET_NAME \
-        force_init_embeddings=true \
+        eval_dataset=$EVAL_DATASET_NAME 
         # add_special_tokens="<|BACKTRACK|>"
 
     ./bash/sys/log_yaml.sh $TRAIN_CONFIG_PATH
@@ -103,8 +113,8 @@ if [ "$DO_MERGE" = true ]; then
         model_name_or_path=$MODEL_NAME_OR_PATH \
         adapter_name_or_path=$TRAIN_OUTPUT_PATH \
         template=$MERGE_TEMPLATE \
-        export_dir=$MODEL_PATH \
-        export_hub_model_id=$HF_USERNAME/$WANDB_NAME \
+        export_dir=$MODEL_PATH 
+        # export_hub_model_id=$HF_USERNAME/$WANDB_NAME 
 
 
     ./bash/sys/log_yaml.sh $MERGE_CONFIG_PATH

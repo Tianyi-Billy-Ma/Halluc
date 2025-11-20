@@ -6,13 +6,13 @@
 #$ -q gpu@@yye7_lab  # Run on the GPU cluster
 #$ -o ~/Projects/Halluc/logs/$JOB_NAME_$JOB_ID.log
 #$ -l gpu_card=4     # Run on 1 GPU card
-#$ -N llmhalluc_e2e      # Specify job name
+#$ -N llmhalluc      # Specify job name
 
 
 
 # Some thing need to change 
-TRAIN_NAME="STAGE_1_EPOCH_30"
-
+EXP_NAME="gsm8k"
+METHOD_NAME="sft"
 
 TRAIN_CONFIG="./configs/llamafactory/train.yaml"
 MERGE_CONFIG="./configs/llamafactory/merge.yaml"
@@ -29,23 +29,26 @@ STAGE="sft"
 FINETUNING_TYPE="lora"
 
 # Model Name and Abbr
-MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Instruct-2507"
+# MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Instruct-2507"
+# MODEL_NAME_OR_PATH="Qwen/Qwen3-4B"
 # MODEL_NAME_OR_PATH="Qwen/Qwen3-0.6B"
+MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1B"
 ENABLE_THINKING=false
 
 
-# Merge Model 
-MERGE_TEMPLATE="qwen3"
+# LLaMA-Factory Template 
+# LF_TEMPLATE="qwen3"
+LF_TEMPLATE="llama3"
 
 # Dataset
-TRAIN_DATASET_NAME="gsm8k_symbolic_bt_train"
-EVAL_DATASET_NAME=""
+# TRAIN_DATASET_NAME="gsm8k_symbolic_bt_train"
+TRAIN_DATASET_NAME="gsm8k_train"
+EVAL_DATASET_NAME="gsm8k_eval"
 
 # lm_eval
-TASK_NAME="gsm8k_bt"
-EVAL_MODEL="hf-bt"
-
-
+EVAL_TASK_NAME="gsm8k_bt"
+# EVAL_MODEL="hf-bt"
+EVAL_MODEL="hf"
 
 ### Automatic Parts. You can skip.
 # Parse mode argument and set phase flags
@@ -59,18 +62,23 @@ if [ -z "$EVAL_DATASET_NAME" ]; then
 fi
 
 
-if [ -z "$TRAIN_NAME" ]; then
-    WANDB_NAME="${MODEL_ABBR}_${TASK_NAME}_${STAGE}_${FINETUNING_TYPE}_${TRAIN_NAME}"
-else 
-    WANDB_NAME="${MODEL_ABBR}_${TASK_NAME}_${STAGE}_${FINETUNING_TYPE}"
+if [ -z "$METHOD_NAME" ]; then
+    METHOD_NAME=$(echo "$STAGE" | tr '[:upper:]' '[:lower:]')
 fi
     
 
-MODEL_PATH="${MODEL_DIR}/${WANDB_NAME}"
-TRAIN_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/${TRAIN_NAME}"
-TRAIN_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/${TRAIN_NAME}/train_config.yaml"
-MERGE_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/${TRAIN_NAME}/merge_config.yaml"
-EVAL_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${TASK_NAME}/${STAGE}/${FINETUNING_TYPE}/lm_eval/${TRAIN_NAME}_results.json"
+WANDB_NAME="${MODEL_ABBR}_${EXP_NAME}_${METHOD_NAME}"
+
+if [ "$METHOD_NAME" == "vanilla" ]; then
+    MODEL_PATH="${MODEL_NAME_OR_PATH}"
+else
+    MODEL_PATH="${MODEL_DIR}/${WANDB_NAME}"
+fi
+
+TRAIN_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/train"
+TRAIN_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/train_config.yaml"
+MERGE_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/merge_config.yaml"
+EVAL_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/eval/results.json"
 
 
 
@@ -86,6 +94,7 @@ if [ "$DO_TRAIN" = true ]; then
         --output_yaml $TRAIN_CONFIG_PATH \
         model_name_or_path=$MODEL_NAME_OR_PATH \
         enable_thinking=$ENABLE_THINKING \
+        template=$LF_TEMPLATE \
         output_dir=$TRAIN_OUTPUT_PATH \
         stage=$STAGE \
         finetuning_type=$FINETUNING_TYPE \
@@ -112,7 +121,7 @@ if [ "$DO_MERGE" = true ]; then
         --output_yaml $MERGE_CONFIG_PATH \
         model_name_or_path=$MODEL_NAME_OR_PATH \
         adapter_name_or_path=$TRAIN_OUTPUT_PATH \
-        template=$MERGE_TEMPLATE \
+        template=$LF_TEMPLATE \
         export_dir=$MODEL_PATH 
         # export_hub_model_id=$HF_USERNAME/$WANDB_NAME 
 
@@ -133,7 +142,7 @@ if [ "$DO_EVAL" = true ]; then
     # Build the base command
     BASE_CMD="lm_eval --model ${EVAL_MODEL} \
         --model_args pretrained=${MODEL_PATH},enable_thinking=False\
-        --tasks ${TASK_NAME} \
+        --tasks ${EVAL_TASK_NAME} \
         --output_path ${EVAL_OUTPUT_PATH} \
         --seed ${SEED} \
         --wandb_args project=${WANDB_PROJECT_NAME},name=${WANDB_NAME} \

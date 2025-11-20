@@ -13,7 +13,6 @@ flash_attn: fa2
 
 ### method 
 do_train: true 
-do_predict: true
 lora_rank: 8
 lora_target: all
 deepspeed: configs/llamafactory/deepspeed/ds_z0_config.json
@@ -56,9 +55,7 @@ greater_is_better: false
 per_device_eval_batch_size: 12
 eval_strategy: steps
 eval_steps: 500
-# compute_accuracy: true
-predict_with_generate: true
-
+compute_accuracy: true
 
 ### Special Tokens
 # add_special_tokens: "<|BACKTRACK|>"

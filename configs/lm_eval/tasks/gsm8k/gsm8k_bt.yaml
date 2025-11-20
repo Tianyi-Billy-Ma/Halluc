@@ -7,7 +7,7 @@ output_type: generate_until
 training_split: train
 fewshot_split: train
 test_split: test
-doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: "Question: {{question}}\nLet's think step by step. Put your final answer at the end starts with `###`.\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
   - metric: exact_match

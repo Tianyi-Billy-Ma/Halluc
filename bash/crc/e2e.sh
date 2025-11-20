@@ -12,7 +12,7 @@
 
 # Some thing need to change 
 EXP_NAME="gsm8k"
-METHOD_NAME="sft"
+METHOD_NAME="sft_bt"
 
 TRAIN_CONFIG="./configs/llamafactory/train.yaml"
 MERGE_CONFIG="./configs/llamafactory/merge.yaml"
@@ -32,7 +32,8 @@ FINETUNING_TYPE="lora"
 # MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Instruct-2507"
 # MODEL_NAME_OR_PATH="Qwen/Qwen3-4B"
 # MODEL_NAME_OR_PATH="Qwen/Qwen3-0.6B"
-MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1B"
+# MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1B"
+MODEL_NAME_OR_PATH="${MODEL_DIR}/llama-3.2-1b-gsm8k_sft"
 ENABLE_THINKING=false
 
 
@@ -41,9 +42,10 @@ ENABLE_THINKING=false
 LF_TEMPLATE="llama3"
 
 # Dataset
-# TRAIN_DATASET_NAME="gsm8k_symbolic_bt_train"
-TRAIN_DATASET_NAME="gsm8k_train"
-EVAL_DATASET_NAME="gsm8k_eval"
+TRAIN_DATASET_NAME="gsm8k_symbolic_bt_train"
+EVAL_DATASET_NAME=""
+# TRAIN_DATASET_NAME="gsm8k_train"
+# EVAL_DATASET_NAME="gsm8k_eval"
 
 # lm_eval
 EVAL_TASK_NAME="gsm8k_bt"
@@ -101,7 +103,6 @@ if [ "$DO_TRAIN" = true ]; then
         run_name=$WANDB_NAME\
         dataset=$TRAIN_DATASET_NAME \
         eval_dataset=$EVAL_DATASET_NAME 
-        # add_special_tokens="<|BACKTRACK|>"
 
     ./bash/sys/log_yaml.sh $TRAIN_CONFIG_PATH
     llamafactory-cli train $TRAIN_CONFIG_PATH

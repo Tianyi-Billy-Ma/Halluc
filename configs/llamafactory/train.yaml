@@ -61,4 +61,12 @@ compute_accuracy: true
 # add_special_tokens: "<|BACKTRACK|>"
 new_special_tokens_config: ./configs/llamafactory/token.yaml
 init_special_tokens: desc_init
-force_init_embeddings: true
+
+
+### Qwen Models 
+# force_init_embeddings: true
+
+### Llama Models 
+force_init_embeddings: false
+replace_text:
+  "<BACKTRACK>": "<|reserved_special_token_0|>" # This is used to replace the BACKTRACK token with the reserved special token 0 for Llama Models.

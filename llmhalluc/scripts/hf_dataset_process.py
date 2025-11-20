@@ -21,8 +21,13 @@ Description:
 """
 
 import argparse
+import sys
 from pathlib import Path
 from datasets import load_dataset
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from llmhalluc.data import get_dataset_converter
 from llmhalluc.utils import process_dataset
@@ -97,7 +102,7 @@ def main(arg_list: list[str] = None):
         processor=converter,
         repeat=args.repeat,
         num_proc=args.num_proc,
-        push_to_hub=args.hf_push_url,
+        hf_push_url=args.hf_push_url,
     )
 
 

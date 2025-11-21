@@ -10,79 +10,49 @@
 
 
 
-# Some thing need to change 
-EXP_NAME="gsm8k"
-METHOD_NAME="sft_bt"
-
-TRAIN_CONFIG="./configs/llamafactory/train.yaml"
-MERGE_CONFIG="./configs/llamafactory/merge.yaml"
-
-WANDB_PROJECT_NAME="llamafactory"
-MODEL_DIR="/scratch365/tma2/.cache/halluc/models"
-OUTPUT_DIR="/scratch365/tma2/.cache/halluc/outputs"
-SEED=3
-HF_USERNAME="mtybilly"
-DDP=1
-
-# Method 
-STAGE="sft"
-FINETUNING_TYPE="lora"
-
-# Model Name and Abbr
-# MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Instruct-2507"
-# MODEL_NAME_OR_PATH="Qwen/Qwen3-4B"
-# MODEL_NAME_OR_PATH="Qwen/Qwen3-0.6B"
-# MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1B"
-MODEL_NAME_OR_PATH="${MODEL_DIR}/llama-3.2-1b-gsm8k_sft"
-ENABLE_THINKING=false
-
-
-# LLaMA-Factory Template 
-# LF_TEMPLATE="qwen3"
-LF_TEMPLATE="llama3"
-
-# Dataset
-TRAIN_DATASET_NAME="gsm8k_symbolic_bt_train"
-EVAL_DATASET_NAME=""
-# TRAIN_DATASET_NAME="gsm8k_train"
-# EVAL_DATASET_NAME="gsm8k_eval"
-
-# lm_eval
-EVAL_TASK_NAME="gsm8k_bt"
-# EVAL_MODEL="hf-bt"
-EVAL_MODEL="hf"
-
-### Automatic Parts. You can skip.
 # Parse mode argument and set phase flags
 source ./bash/sys/parse_mode.sh "$1"
 
-# Automatically set MODEL_ABBR based on MODEL_NAME_OR_PATH
-MODEL_ABBR=$(basename "$MODEL_NAME_OR_PATH" | tr '[:upper:]' '[:lower:]')
+source ./bash/sys/init_env.sh llmhalluc
 
-if [ -z "$EVAL_DATASET_NAME" ]; then
-    EVAL_DATASET_NAME=$TRAIN_DATASET_NAME
+# Resolve experiment configuration via helper script
+E2E_CONFIG_PATH=${E2E_CONFIG_PATH:-"./configs/llmhalluc/e2e.yaml"}
+E2E_SETUP_CMD=(python -m llmhalluc.scripts.e2e_setup --format shell --config "$E2E_CONFIG_PATH" \
+    --do-train "$DO_TRAIN" \
+    --do-merge "$DO_MERGE" \
+    --do-eval "$DO_EVAL")
+
+if [ -n "${E2E_OVERRIDES:-}" ]; then
+    for kv in ${E2E_OVERRIDES}; do
+        E2E_SETUP_CMD+=(--override "$kv")
+    done
 fi
 
+echo "================================================"
+echo "Experiment Config: $E2E_CONFIG_PATH"
+echo "================================================"
 
-if [ -z "$METHOD_NAME" ]; then
-    METHOD_NAME=$(echo "$STAGE" | tr '[:upper:]' '[:lower:]')
-fi
-    
-
-WANDB_NAME="${MODEL_ABBR}_${EXP_NAME}_${METHOD_NAME}"
-
-if [ "$METHOD_NAME" == "vanilla" ]; then
-    MODEL_PATH="${MODEL_NAME_OR_PATH}"
-else
-    MODEL_PATH="${MODEL_DIR}/${WANDB_NAME}"
+if ! E2E_VARS="$("${E2E_SETUP_CMD[@]}")"; then
+    echo "Failed to generate stage configs. Exiting."
+    exit 1
 fi
 
-TRAIN_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/train"
-TRAIN_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/train_config.yaml"
-MERGE_CONFIG_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/merge_config.yaml"
-EVAL_OUTPUT_PATH="${OUTPUT_DIR}/${MODEL_ABBR}/${EXP_NAME}/${METHOD_NAME}/eval/results.json"
+eval "$E2E_VARS"
 
-
+echo "Generated configs:"
+if [ "$DO_TRAIN" = true ]; then
+    echo "  Train -> $TRAIN_CONFIG_PATH"
+fi
+if [ "$DO_MERGE" = true ]; then
+    echo "  Merge -> $MERGE_CONFIG_PATH"
+fi
+if [ "$DO_EVAL" = true ]; then
+    echo "  Eval  -> $EVAL_CONFIG_PATH"
+fi
+if [ "$DO_TRAIN" = true ] || [ "$DO_MERGE" = true ]; then
+    echo "  Special Tokens -> $SPECIAL_TOKEN_CONFIG_PATH"
+fi
+echo "================================================"
 
 if [ "$DO_TRAIN" = true ]; then
     echo "================================================"
@@ -90,19 +60,6 @@ if [ "$DO_TRAIN" = true ]; then
     echo "================================================"
 
     source ./bash/sys/init_env.sh llamafactory
-
-    python llmhalluc/scripts/update_yaml.py \
-        --input_yaml $TRAIN_CONFIG \
-        --output_yaml $TRAIN_CONFIG_PATH \
-        model_name_or_path=$MODEL_NAME_OR_PATH \
-        enable_thinking=$ENABLE_THINKING \
-        template=$LF_TEMPLATE \
-        output_dir=$TRAIN_OUTPUT_PATH \
-        stage=$STAGE \
-        finetuning_type=$FINETUNING_TYPE \
-        run_name=$WANDB_NAME\
-        dataset=$TRAIN_DATASET_NAME \
-        eval_dataset=$EVAL_DATASET_NAME 
 
     ./bash/sys/log_yaml.sh $TRAIN_CONFIG_PATH
     llamafactory-cli train $TRAIN_CONFIG_PATH
@@ -117,16 +74,6 @@ if [ "$DO_MERGE" = true ]; then
 
     source ./bash/sys/init_env.sh llamafactory
 
-    python llmhalluc/scripts/update_yaml.py \
-        --input_yaml $MERGE_CONFIG \
-        --output_yaml $MERGE_CONFIG_PATH \
-        model_name_or_path=$MODEL_NAME_OR_PATH \
-        adapter_name_or_path=$TRAIN_OUTPUT_PATH \
-        template=$LF_TEMPLATE \
-        export_dir=$MODEL_PATH 
-        # export_hub_model_id=$HF_USERNAME/$WANDB_NAME 
-
-
     ./bash/sys/log_yaml.sh $MERGE_CONFIG_PATH
     llamafactory-cli export $MERGE_CONFIG_PATH
 else
@@ -140,34 +87,13 @@ if [ "$DO_EVAL" = true ]; then
 
     source ./bash/sys/init_env.sh lm_eval
 
-    # Build the base command
-    BASE_CMD="lm_eval --model ${EVAL_MODEL} \
-        --model_args pretrained=${MODEL_PATH},enable_thinking=False\
-        --tasks ${EVAL_TASK_NAME} \
-        --output_path ${EVAL_OUTPUT_PATH} \
-        --seed ${SEED} \
-        --wandb_args project=${WANDB_PROJECT_NAME},name=${WANDB_NAME} \
-        --log_samples \
-        --apply_chat_template \
-        --include_path ./configs/lm_eval/tasks"
-
     echo "================================================"
-    echo "Available GPUs: $CUDA_VISIBLE_DEVICES"
-    echo "Model Path: ${MODEL_PATH}"
-    echo "Output Path: ${EVAL_OUTPUT_PATH}"
-    echo "Num of Fewshot: ${NUM_FEWSHOT}"
-    echo "Seed: ${SEED}"
+    echo "Available GPUs: ${CUDA_VISIBLE_DEVICES}"
+    echo "Eval Config: ${EVAL_CONFIG_PATH}"
+    echo "Accelerate: accelerate launch"
     echo "================================================"
 
-    # Conditionally prepend accelerate launch for DDP
-    if [ $DDP -eq 1 ]; then
-        CMD="accelerate launch -m ${BASE_CMD}"
-    else
-        CMD="${BASE_CMD}"
-    fi
-
-    # Execute the command
-    eval $CMD
+    accelerate launch -m lm_eval --config "${EVAL_CONFIG_PATH}"
 else
     echo "Skipping Evaluation Phase (not in mode: $MODE)"
 fi

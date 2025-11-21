@@ -1,0 +1,13 @@
+
+
+llama:
+  "<|reserved_special_token_0|>": "This token is used to delete the previous token in the response."
+
+llama3:
+  "<|reserved_special_token_0|>": "This token is used to delete the previous token in the response."
+
+qwen3:
+  "<|BACKTRACK|>": "This token is used to delete the previous token in the response."
+
+qwen:
+  "<|BACKTRACK|>": "This token is used to delete the previous token in the response."

@@ -1,0 +1,13 @@
+# model: null
+# model_args: null
+# tasks: null
+# output_path: null
+# seed: null
+# wandb_args: null
+# accelerate_launch: null
+
+log_samples: true
+apply_chat_template: true
+include_path: ./configs/lm_eval/tasks
+confirm_run_unsafe_code: true
+

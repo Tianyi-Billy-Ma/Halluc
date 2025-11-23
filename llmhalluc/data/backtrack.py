@@ -35,7 +35,11 @@ class BacktrackDatasetConverter(DatasetConverter):
     def __post_init__(self) -> None:
         """Initialize default values after dataclass creation."""
         if self.key_mapping is None:
-            self.key_mapping = {"prompt": "prompt", "query": "query", "response": "response"}
+            self.key_mapping = {
+                "prompt": "prompt",
+                "query": "query",
+                "response": "response",
+            }
 
         if self.no_spc_vocab is None:
             vocab = set(self.tokenizer.get_vocab().values())
@@ -61,13 +65,16 @@ class BacktrackDatasetConverter(DatasetConverter):
         backtrack_id = self.tokenizer.encode(BACKTRACK_TOKEN)[0]
 
         # Determine number of random tokens to add
-        random_int = np.random.randint(0, self.max_tokens) if self.split == "train" else 0
+        random_int = (
+            np.random.randint(0, self.max_tokens) if self.split == "train" else 0
+        )
 
         # If no wrong tokens, return original example
         if random_int == 0:
             return {
                 "prompt": prompt,
                 "query": query,
+                "original_response": response,
                 "response": response,
                 "backtrack_content": "",
             }
@@ -76,9 +83,13 @@ class BacktrackDatasetConverter(DatasetConverter):
         random_split = np.random.randint(0, len(response_token_ids))
         np.random.shuffle(self.no_spc_vocab)
 
-        backtrack_token_ids = response_token_ids[:random_split] + self.no_spc_vocab[:random_int]
+        backtrack_token_ids = (
+            response_token_ids[:random_split] + self.no_spc_vocab[:random_int]
+        )
 
-        curr_response_token_ids = [backtrack_id] * random_int + response_token_ids[random_split:]
+        curr_response_token_ids = [backtrack_id] * random_int + response_token_ids[
+            random_split:
+        ]
 
         # Decode modified content
         backtrack_content = self.tokenizer.decode(backtrack_token_ids)

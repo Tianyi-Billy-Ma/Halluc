@@ -12,6 +12,30 @@ from ..utils.alg_utils import cs_alg
 
 
 @dataclass
+class GSM8KBacktrackAttr:
+    prompt: str
+    query: str
+    response: str
+    backtrack_response: str
+    backtrack_prefix: str
+    backtrack_suffix: str
+    original_query: str
+    original_response: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "prompt": self.prompt,
+            "query": self.query,
+            "response": self.response,
+            "backtrack_response": self.backtrack_response,
+            "backtrack_prefix": self.backtrack_prefix,
+            "backtrack_suffix": self.backtrack_suffix,
+            "original_query": self.original_query,
+            "original_response": self.original_response,
+        }
+
+
+@dataclass
 class GSM8KDatasetConverter(DatasetConverter):
     """Converter for backtrack dataset processing.
 
@@ -71,6 +95,7 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
     prompt: str = MATH_INSTRUCTION
     backtrack_token: str = BACKTRACK_TOKEN
     backtrack_token_id: int = None
+    option: str = "half"  # ["all", "half", "random"]
 
     def __post_init__(self) -> None:
         """Initialize default values after dataclass creation."""
@@ -91,12 +116,26 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
                     f"but got {len(backtrack_token_ids)} tokens: {backtrack_token_ids}"
                 )
             self.backtrack_token_id = backtrack_token_ids[0]
+            
+        print(f"Option set to: {self.option}")
 
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         query = example[self.key_mapping["query"]]
         response = example[self.key_mapping["response"]].replace("\n\n", "\n")
+        original_query = example[self.key_mapping["original_query"]]
         ori_response = example[self.key_mapping["original_response"]].replace(
             "\n\n", "\n"
+        )
+
+        data_attr = GSM8KBacktrackAttr(
+            prompt=self.prompt,
+            query=query,
+            response=response,
+            backtrack_response="",
+            backtrack_prefix="",
+            backtrack_suffix="",
+            original_query=original_query,
+            original_response=ori_response,
         )
 
         sym_response_token_ids = self.tokenizer.encode(response)
@@ -104,13 +143,9 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
 
         # Edge case: If responses are identical, return without backtracking
         if sym_response_token_ids == ori_response_token_ids:
-            return {
-                "prompt": self.prompt,
-                "query": query,
-                "response": response,
-                "backtrack_content": "",
-                "backtrack_response": response,
-            }
+            data_attr.backtrack_suffix = response
+            data_attr.backtrack_response = response
+            return data_attr.to_dict()
 
         sym_lcs_pairs, ori_lcs_pairs = cs_alg(
             sym_response_token_ids, ori_response_token_ids
@@ -143,19 +178,20 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
 
         # Edge case: If no divergence points exist, return without backtracking
         if num_candidates == 0:
-            return {
-                "prompt": self.prompt,
-                "query": query,
-                "response": response,
-                "backtrack_content": "",
-                "backtrack_response": response,
-            }
+            data_attr.backtrack_suffix = response
+            data_attr.backtrack_response = response
+            return data_attr.to_dict()
 
         # Randomly choose at most one divergence point to follow the original path
-        chosen_candidates = np.random.choice([True, False], size=num_candidates)
+        #
+        if self.option == "all":
+            chosen_candidates = [True] * num_candidates
+        else:
+            p = 0.5 if self.option == "half" else np.random.uniform(0.4, 1)
+            chosen_candidates = list(np.random.choice([True, False], size=num_candidates, p=[p, 1 - p]))
 
         # Edge case: Ensure at least one divergence is chosen for backtracking
-        if not chosen_candidates.any():
+        if not any(chosen_candidates):
             # If no divergence chosen, pick one randomly
             chosen_idx = np.random.randint(0, num_candidates)
             chosen_candidates[chosen_idx] = True
@@ -208,9 +244,9 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
                 backtrack_count = 0
 
         verify_response = self.tokenizer.decode(verify_token_ids)
-        full_response = self.tokenizer.decode(modified_token_ids)
-        backtrack_content = self.tokenizer.decode(modified_token_ids[:backtrack_idx])
-        backtrack_response = self.tokenizer.decode(modified_token_ids[backtrack_idx:])
+        backtrack_response = self.tokenizer.decode(modified_token_ids)
+        backtrack_prefix = self.tokenizer.decode(modified_token_ids[:backtrack_idx])
+        backtrack_suffix = self.tokenizer.decode(modified_token_ids[backtrack_idx:])
 
         assert verify_token_ids == sym_response_token_ids, (
             f"The modified token ids are not correct. "
@@ -222,10 +258,7 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
             f"Got: {verify_response}"
         )
 
-        return {
-            "prompt": self.prompt,
-            "query": query,
-            "response": full_response,
-            "backtrack_content": backtrack_content,
-            "backtrack_response": backtrack_response,
-        }
+        data_attr.backtrack_response = backtrack_response
+        data_attr.backtrack_suffix = backtrack_suffix
+        data_attr.backtrack_prefix = backtrack_prefix
+        return data_attr.to_dict()

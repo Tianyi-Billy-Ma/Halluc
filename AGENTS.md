@@ -35,7 +35,8 @@ When you edit the code, you should update the recent changes section to reflect 
 
 ## Recent Changes 
 
-1. 2025-11-07: Synced `LLaMA-Factory/` to upstream commit a711bce, reapplied local dataset/security tweaks, and resolved conflicts in custom collator/loader formatters.
+1. 2025-11-22: Ensured `llmhalluc/scripts/process_backtrack_dataset.py` prepends the repo root to `sys.path` so it can be run directly without installation.
+2. 2025-11-07: Synced `LLaMA-Factory/` to upstream commit a711bce, reapplied local dataset/security tweaks, and resolved conflicts in custom collator/loader formatters.
 
 ## Current Tasks
 

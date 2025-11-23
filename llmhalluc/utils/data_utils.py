@@ -50,8 +50,7 @@ def process_dataset(
     else:
         # Repeat dataset if specified (only for train split)
         actual_repeat = repeat if split == "train" else 1
-        if actual_repeat > 1:
-            dataset = dataset.repeat(actual_repeat)
+        dataset = dataset.repeat(actual_repeat) if actual_repeat > 1 else dataset
 
         # Process dataset
         column_names = dataset.column_names

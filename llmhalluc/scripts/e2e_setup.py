@@ -73,6 +73,10 @@ class ExperimentContext:
     eval_config_path: Path = field(init=False)
     special_tokens_path: Path = field(init=False)
 
+    ### DPO
+    pref_loss: str = "sigmoid"
+    pref_beta: float = 0.1
+
     def __post_init__(self) -> None:
         model_basename = Path(self.model_name_or_path).name.lower()
         self.model_abbr = model_basename

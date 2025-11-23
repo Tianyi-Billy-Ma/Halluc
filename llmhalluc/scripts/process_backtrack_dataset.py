@@ -1,9 +1,15 @@
 """Backtrack dataset processing script - main novelty of the project."""
 
 import argparse
+import sys
+from pathlib import Path
 
 from transformers import AutoTokenizer
 from datasets import load_dataset
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from llmhalluc.data.backtrack import (
     BACKTRACK_TOKEN,
@@ -47,7 +53,7 @@ def main(arg_list: list[str] = None) -> None:
     parser.add_argument(
         "--repeat",
         type=int,
-        default=5,
+        default=0,
         help="Number of times to repeat dataset (only for train split)",
     )
     parser.add_argument(
@@ -81,6 +87,7 @@ def main(arg_list: list[str] = None) -> None:
     converter = get_dataset_converter(
         args.converter,
         tokenizer=tokenizer,
+        option="random",
     )
 
     dataset = load_dataset(
@@ -91,6 +98,8 @@ def main(arg_list: list[str] = None) -> None:
         if args.redownload
         else "reuse_dataset_if_exists",
     )
+    
+    dataset["train"] = dataset["test"]
 
     process_dataset(
         dataset=dataset,
@@ -109,10 +118,12 @@ if __name__ == "__main__":
         "--hf_dataset_url",
         "apple/GSM-Symbolic",
         "--hf_push_url",
-        "GSM8K-Symbolic-Backtrack",
+        "GSM8K-Symbolic-Backtrack-all",
         "--subset",
         "main",
         "--num_proc",
         "12",
+        "--repeat",
+        "5",
     ]
     main(arg_list)

@@ -33,6 +33,20 @@ Although Llama-Factory and lm-evaluation-harness provide CLI tools, we find it m
 
 When you edit the code, you should update the recent changes section to reflect the recent change (keep the order of the changes and should only keep five recent changes). Moreover, if all the tasks are completed, you should change the current tasks section to "N/A".
 
+
+## Environment 
+
+### Conda Environment
+
+We use conda to manage the environment. The environment name is `llamafactory` for training and `lm_eval` for evaluation.
+For llmhalluc, we use `llmhalluc` environment.
+
+If you find the conda is not activated, you can use the following command:
+```bash
+source ~/.activate_conda
+```
+to activate the conda environment.
+
 ## Recent Changes 
 
 1. 2025-11-22: Ensured `llmhalluc/scripts/process_backtrack_dataset.py` prepends the repo root to `sys.path` so it can be run directly without installation.

@@ -11,7 +11,8 @@
 
 # SOME THING NEED TO CHANGE
 
-EXP_NAME="gsm8k"
+# EXP_NAME="gsm8k"
+EXP_NAME="squad_v2"
 METHOD_NAME="vanilla"
 
 
@@ -23,15 +24,16 @@ DDP=1
 
 # Method
 STAGE="vanilla"
-EVAL_TASK_NAME="gsm8k_bt"
+# EVAL_TASK_NAME="gsm8k_bt"
+EVAL_TASK_NAME="squadv2"
 EVAL_MODEL="hf"
 
 # Model Name and Abbr
 # MODEL_NAME_OR_PATH="Qwen/Qwen3-0.6B-Base"
-# MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1B"
+MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1B"
 # MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1B-Instruct"
 # MODEL_NAME_OR_PATH="meta-llama/Llama-3.1-8B"
-MODEL_NAME_OR_PATH="meta-llama/Llama-3.1-8B-Instruct"
+# MODEL_NAME_OR_PATH="meta-llama/Llama-3.1-8B-Instruct"
 # MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-3B"
 # MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-3B-Instruct"
 ENABLE_THINKING=false

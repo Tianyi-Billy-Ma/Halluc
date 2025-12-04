@@ -14,5 +14,5 @@ class BaseArguments:
         return {
             f.name: getattr(self, f.name)
             for f in fields(self)
-            if not f.name.startswith("_") and f.name not in self.yaml_exclude
+            if getattr(self, f.name) and f.name not in self.yaml_exclude
         }

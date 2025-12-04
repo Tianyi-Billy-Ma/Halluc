@@ -1,4 +1,24 @@
 {
+    "gsm8k_symbolic_sft_train": {
+        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "train",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "response": "response"
+        }
+    },
+    "gsm8k_symbolic_sft_eval": {
+        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "test",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "response": "response"
+        }
+    },
     "gsm8k_symbolic_dpo_train": {
         "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
         "formatting": "alpaca",

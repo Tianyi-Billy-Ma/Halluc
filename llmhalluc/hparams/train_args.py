@@ -21,6 +21,7 @@ class TrainArguments(BaseArguments):
 
     ### method
     do_train: bool = True
+    do_eval: bool = False
     lora_rank: int = 8
     lora_target: str = "all"
 
@@ -65,9 +66,6 @@ class TrainArguments(BaseArguments):
     pref_loss: str | None = None
     pref_beta: float | None = None
 
-    _pref_loss: str | None = "sigmoid"
-    _pref_beta: float | None = 0.1
-
     ### eval
     eval_dataset: str | None = None
     per_device_eval_batch_size: int = 12
@@ -83,6 +81,7 @@ class TrainArguments(BaseArguments):
     # Special Token Initialization
     init_special_tokens: str = ""
     new_special_tokens_config: str = ""
+    replace_text: dict[str, str] | None = None
 
     # Derived fields
     model_name: str = field(init=False)
@@ -91,7 +90,7 @@ class TrainArguments(BaseArguments):
 
     @property
     def yaml_exclude(self):
-        return {"model_name", "exp_path", "config_path"}
+        return {"model_name", "exp_path", "config_path", "wandb_project"}
 
     def __post_init__(self):
         self.model_name = Path(self.model_name_or_path).name.lower()
@@ -107,9 +106,12 @@ class TrainArguments(BaseArguments):
                 self.exp_path / "special_token_config.yaml"
             )
 
+        if self.eval_dataset:
+            self.do_eval = True
+
         self.__dpo_init__()
 
     def __dpo_init__(self):
         if self.stage.lower() == "dpo":
-            self.pref_loss = self.pref_loss or self._pref_loss
-            self.pref_beta = self.pref_beta or self._pref_beta
+            self.pref_loss = self.pref_loss or "sigmoid"
+            self.pref_beta = self.pref_beta or 0.1

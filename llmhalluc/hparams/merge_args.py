@@ -32,7 +32,7 @@ class MergeArguments(BaseArguments):
 
     @property
     def yaml_exclude(self):
-        return {"stage", "run_name"}
+        return {"stage", "run_name", "exp_path", "config_path", "model_name"}
 
     def __post_init__(self):
         self.model_name = Path(self.model_name_or_path).name.lower()

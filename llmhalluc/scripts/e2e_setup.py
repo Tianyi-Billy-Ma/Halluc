@@ -109,6 +109,7 @@ def patch_train_config(
 
     if "llama3" in template:
         args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
+        args.force_init_embeddings = True
     elif "qwen3" in template:
         args.force_init_embeddings = True
     return args
@@ -210,9 +211,10 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     output = {
-        "train": train_args.config_path,
-        "merge": merge_args.config_path,
-        "eval": eval_args.config_path,
+        "TRAIN_CONFIG_PATH": str(train_args.config_path),
+        "MERGE_CONFIG_PATH": str(merge_args.config_path),
+        "EVAL_CONFIG_PATH": str(eval_args.config_path),
+        "SPECIAL_TOKEN_CONFIG_PATH": str(train_args.new_special_tokens_config or ""),
     }
 
     if args.format == "json":

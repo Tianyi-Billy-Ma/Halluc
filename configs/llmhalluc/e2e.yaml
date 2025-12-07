@@ -5,16 +5,18 @@ run_name: gsm8k
 # model_name_or_path: /scratch365/tma2/.cache/halluc/models/llama-3.2-1b_gsm8k_sft
 model_name_or_path: meta-llama/Llama-3.2-1B
 template: llama3
-stage: sft
+stage: ppo
 finetuning_type: lora
 
 # Dataset
-dataset: gsm8k_symbolic_sft_train
-eval_dataset: gsm8k_symbolic_sft_eval
+# dataset: gsm8k_symbolic_sft_train
+dataset: gsm8k_symbolic_ppo
+# eval_dataset: gsm8k_symbolic_sft_eval
 
 # Evaluation
 model: hf
 tasks: gsm8k_bt
+eval_mode: cli
 
 # WandB
 wandb_project: llamafactory
@@ -26,3 +28,8 @@ hf_username: mtybilly
 
 
 init_special_tokens: desc_init
+
+
+# PPO
+reward_model: "backtrack"
+reward_model_type: "custom"

@@ -63,7 +63,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--format",
-        choices=("json", "shell"),
+        choices=("json", "shell", "else"),
         default="json",
         help="Output format for resolved values (default: %(default)s)",
     )
@@ -110,8 +110,10 @@ def patch_train_config(
     if "llama3" in template:
         args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
         args.force_init_embeddings = True
+        args.backtrack_token = "<|reserved_special_token_0|>"
     elif "qwen3" in template:
         args.force_init_embeddings = True
+        args.backtrack_token = "<|BACKTRACK|>"
     return args
 
 
@@ -183,7 +185,7 @@ def build_configs(config: dict[str, any], plan: dict[str, bool]) -> dict[str, an
     return train_args, merge_args, eval_args
 
 
-def main(argv: list[str] | None = None) -> int:
+def e2e_setup(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     setup_logging(args.verbose)
 
@@ -215,15 +217,18 @@ def main(argv: list[str] | None = None) -> int:
         "MERGE_CONFIG_PATH": str(merge_args.config_path),
         "EVAL_CONFIG_PATH": str(eval_args.config_path),
         "SPECIAL_TOKEN_CONFIG_PATH": str(train_args.new_special_tokens_config or ""),
+        "EVAL_MODE": eval_args.eval_mode,
     }
 
     if args.format == "json":
         print(json.dumps(output, indent=2))
-    else:
-        print(format_shell(output))
 
+    elif args.format == "shell":
+        print(format_shell(output))
+    else:
+        return output
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(e2e_setup())

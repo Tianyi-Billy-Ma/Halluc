@@ -1,2 +1,0 @@
-kinit
-aklog

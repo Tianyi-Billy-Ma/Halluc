@@ -31,7 +31,7 @@ Although Llama-Factory and lm-evaluation-harness provide CLI tools, we find it m
 
 ### Workflow 
 
-When you edit the code, you should update the recent changes section to reflect the recent change (keep the order of the changes and should only keep five recent changes). Moreover, if all the tasks are completed, you should change the current tasks section to "N/A".
+When you edit the code, you should update the recent changes section to reflect the recent change (keep the order of the changes and should only keep five recent changes). Moreover, if all the tasks are completed, you should change the current tasks section to 'N/A'.
 
 
 ## Environment 
@@ -49,8 +49,10 @@ to activate the conda environment.
 
 ## Recent Changes 
 
-1. 2025-11-22: Ensured `llmhalluc/scripts/process_backtrack_dataset.py` prepends the repo root to `sys.path` so it can be run directly without installation.
-2. 2025-11-07: Synced `LLaMA-Factory/` to upstream commit a711bce, reapplied local dataset/security tweaks, and resolved conflicts in custom collator/loader formatters.
+1. 2025-12-06: Added `docs/transformers_upgrade.md` to capture the plan for moving LLaMA-Factory onto newer Hugging Face `transformers` and aligned tooling.
+2. 2025-12-05: Removed the `LLaMA-Factory` and `lm-evaluation-harness` submodules so the Halluc repository no longer vendors them via gitlinks.
+3. 2025-11-22: Ensured `llmhalluc/scripts/process_backtrack_dataset.py` prepends the repo root to `sys.path` so it can be run directly without installation.
+4. 2025-11-07: Synced `LLaMA-Factory/` to upstream commit a711bce, reapplied local dataset/security tweaks, and resolved conflicts in custom collator/loader formatters.
 
 ## Current Tasks
 

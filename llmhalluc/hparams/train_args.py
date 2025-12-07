@@ -1,3 +1,4 @@
+import torch
 from dataclasses import dataclass, field
 from typing import Optional
 from pathlib import Path
@@ -17,7 +18,7 @@ class TrainArguments(BaseArguments):
 
     ### accelerator
     flash_attn: str = "fa2"
-    deepspeed: str = "configs/llamafactory/deepspeed/ds_z0_config.json"
+    deepspeed: str | None = "configs/llamafactory/deepspeed/ds_z0_config.json"
 
     ### method
     do_train: bool = True
@@ -43,7 +44,7 @@ class TrainArguments(BaseArguments):
     plot_loss: bool = True
     overwrite_output_dir: bool = True
     save_only_model: bool = False
-    report_to: str = "wandb"
+    report_to: str | None = "wandb"
 
     ### train
     stage: str
@@ -51,7 +52,7 @@ class TrainArguments(BaseArguments):
     per_device_train_batch_size: int = 4
     gradient_accumulation_steps: int = 8
     learning_rate: float = 1.0e-4
-    num_train_epochs: float = 30.0
+    num_train_epochs: float = 3
     lr_scheduler_type: str = "cosine"
     warmup_ratio: float = 0.1
     fp16: bool = True
@@ -63,20 +64,21 @@ class TrainArguments(BaseArguments):
     greater_is_better: bool = False
 
     # DPO
-    pref_loss: str | None = None
-    pref_beta: float | None = None
+    pref_loss: str = "sigmoid"
+    pref_beta: float = 0.1
 
     ### eval
     eval_dataset: str | None = None
-    per_device_eval_batch_size: int = 12
-    eval_strategy: str = "steps"
-    eval_steps: int = 500
+    per_device_eval_batch_size: int | None = 12
+    eval_strategy: str | None = "steps"
+    eval_steps: int | None = 500
     compute_accuracy: bool = True
 
     ### Special Tokens
     new_special_tokens_config: str | None = None  # ./configs/llamafactory/token.yaml
     init_special_tokens: str | None = "desc_init"
     force_init_embeddings: bool = False
+    backtrack_token: str | None = None
 
     # Special Token Initialization
     init_special_tokens: str = ""
@@ -88,9 +90,29 @@ class TrainArguments(BaseArguments):
     exp_path: Path = field(init=False)
     config_path: Path = field(init=False)
 
+    # PPO fields
+    reward_model: str = ""
+    reward_model_type: str = ""
+
     @property
     def yaml_exclude(self):
-        return {"model_name", "exp_path", "config_path", "wandb_project"}
+        excludes = {
+            "model_name",
+            "exp_path",
+            "config_path",
+            "wandb_project",
+            "reward_model",
+            "reward_model_type",
+            "pref_loss",
+            "pref_beta",
+        }
+        if self.stage.lower() == "ppo":
+            excludes.remove("reward_model")
+            excludes.remove("reward_model_type")
+        elif self.stage.lower() == "dpo":
+            excludes.remove("pref_loss")
+            excludes.remove("pref_beta")
+        return excludes
 
     def __post_init__(self):
         self.model_name = Path(self.model_name_or_path).name.lower()
@@ -109,9 +131,18 @@ class TrainArguments(BaseArguments):
         if self.eval_dataset:
             self.do_eval = True
 
-        self.__dpo_init__()
+        if self.stage.lower() == "ppo":
+            # PPO does not support load best model at end
+            self.load_best_model_at_end = False
+            self.eval_dataset = None  # No eval dataset for PPO
+            self.do_eval = False
+            self.do_predict = False
+            self.eval_steps = None
+            self.eval_strategy = None
+            self.per_device_eval_batch_size = None
+            self.compute_accuracy = False
 
-    def __dpo_init__(self):
-        if self.stage.lower() == "dpo":
-            self.pref_loss = self.pref_loss or "sigmoid"
-            self.pref_beta = self.pref_beta or 0.1
+        if torch.cuda.device_count() <= 1:
+            self.deepspeed = None
+
+        self.report_to = None

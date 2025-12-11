@@ -24,6 +24,8 @@ def run_eval(mode, config_path):
         apply_chat_template=config.apply_chat_template,
         system_instruction=config.system_instruction,
     )
+    print(results)
+    print(results.keys())
 
 
 def run_llamafactory(mode, config_path, additional: list[str] | None = None):
@@ -40,8 +42,8 @@ def main():
     argv = ["--format", "else"]
     setup_dict = e2e_setup(argv)
     print(setup_dict)
-    run_llamafactory("train", setup_dict["TRAIN_CONFIG_PATH"])
-    run_llamafactory("export", setup_dict["MERGE_CONFIG_PATH"])
+    # run_llamafactory("train", setup_dict["TRAIN_CONFIG_PATH"])
+    # run_llamafactory("export", setup_dict["MERGE_CONFIG_PATH"])
     run_eval(setup_dict["EVAL_MODE"], setup_dict["EVAL_CONFIG_PATH"])
 
 

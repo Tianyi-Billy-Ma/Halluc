@@ -28,7 +28,7 @@ class EvaluationArguments(BaseArguments):
     exp_path: Path = field()
     config_path: Path = field(init=False)
 
-    eval_mode: str = "cli"
+    eval_mode: str = ""
 
     @property
     def yaml_exclude(self):
@@ -41,6 +41,7 @@ class EvaluationArguments(BaseArguments):
             "model_name",
             "exp_path",
             "config_path",
+            "eval_mode",
         }
 
     def __post_init__(self):
@@ -51,7 +52,7 @@ class EvaluationArguments(BaseArguments):
         self.output_path = str(self.exp_path / "eval" / "results.json")
 
         if self.eval_mode == "cli":
-            self.model_args = "pretrained={str(self.model_path)},enable_thinking={self.enable_thinking}"
+            self.model_args = f"pretrained={str(self.model_path)},enable_thinking={self.enable_thinking}"
             self.wandb_args = f"project={self.wandb_project},name={self.run_name}"
         else:
             self.model_args = {

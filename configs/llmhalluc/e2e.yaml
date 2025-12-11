@@ -18,7 +18,7 @@ eval_dataset: gsm8k_symbolic_sft_eval
 # Evaluation
 model: hf
 tasks: gsm8k_bt
-eval_mode: cli
+eval_mode: default
 
 # WandB
 wandb_project: llamafactory

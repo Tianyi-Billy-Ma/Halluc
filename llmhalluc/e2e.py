@@ -1,31 +1,55 @@
 import sys
+import os
+from copy import deepcopy
+import subprocess
 import lm_eval
 from lm_eval.config.evaluate_config import EvaluatorConfig
 from llamafactory.cli import main as llamafactory_main
 
 from llmhalluc.scripts.e2e_setup import e2e_setup
+from llmhalluc.utils.sys_utils import load_config
 
 
 def run_eval(mode, config_path):
-    config = EvaluatorConfig.from_config(config_path)
+    if mode == "default":
+        config = EvaluatorConfig.from_config(config_path)
 
-    task_manager = config.process_tasks()
+        task_manager = config.process_tasks()
 
-    results = lm_eval.simple_evaluate(
-        model=config.model,
-        model_args=config.model_args,
-        tasks=config.tasks,
-        num_fewshot=config.num_fewshot,
-        batch_size=config.batch_size,
-        device=config.device,
-        task_manager=task_manager,
-        log_samples=config.log_samples,
-        gen_kwargs=config.gen_kwargs,
-        apply_chat_template=config.apply_chat_template,
-        system_instruction=config.system_instruction,
-    )
-    print(results)
-    print(results.keys())
+        results = lm_eval.simple_evaluate(
+            model=config.model,
+            model_args=config.model_args,
+            tasks=config.tasks,
+            num_fewshot=config.num_fewshot,
+            batch_size=config.batch_size,
+            device=config.device,
+            task_manager=task_manager,
+            log_samples=config.log_samples,
+            gen_kwargs=config.gen_kwargs,
+            apply_chat_template=config.apply_chat_template,
+            system_instruction=config.system_instruction,
+        )
+        print(results)
+        print(results.keys())
+
+    else:
+        eval_config = load_config(config_path)
+
+        args = []
+
+        for key, val in eval_config.items():
+            if isinstance(val, bool) and val:
+                args.append(f"--{key}")
+            elif isinstance(val, str):
+                args.append(f"--{key} {val}")
+            elif isinstance(val, dict):
+                sub_args = ",".join([f"{k}={v}" for k, v in val.items()])
+                args.append(f"--{key} {sub_args}")
+            else:
+                raise ValueError(f"Invalid value type: {type(val)}")
+
+        cmd = ["accelerate", "launch", "lm_eval"] + args
+        subprocess.run(cmd, env=deepcopy(os.environ), check=True)
 
 
 def run_llamafactory(mode, config_path, additional: list[str] | None = None):
@@ -42,8 +66,8 @@ def main():
     argv = ["--format", "else"]
     setup_dict = e2e_setup(argv)
     print(setup_dict)
-    # run_llamafactory("train", setup_dict["TRAIN_CONFIG_PATH"])
-    # run_llamafactory("export", setup_dict["MERGE_CONFIG_PATH"])
+    run_llamafactory("train", setup_dict["TRAIN_CONFIG_PATH"])
+    run_llamafactory("export", setup_dict["MERGE_CONFIG_PATH"])
     run_eval(setup_dict["EVAL_MODE"], setup_dict["EVAL_CONFIG_PATH"])
 
 

@@ -366,7 +366,7 @@ class GSM8KBacktrackDatasetConverter(GSM8KSymbolicDatasetConverter):
         if sym_response_token_ids == ori_response_token_ids:
             data_attr.backtrack_suffix = data_attr.response
             data_attr.backtrack_response = data_attr.response
-            return [data_attr.to_dict()]
+            return self.list_to_batch([data_attr.to_dict()])
 
         ori_lcs_pairs, sym_lcs_pairs = self._find_lcs(
             ori_response_token_ids, sym_response_token_ids
@@ -377,7 +377,7 @@ class GSM8KBacktrackDatasetConverter(GSM8KSymbolicDatasetConverter):
         if num_candidates == 0:
             data_attr.backtrack_suffix = data_attr.response
             data_attr.backtrack_response = data_attr.response
-            return [data_attr.to_dict()]
+            return self.list_to_batch([data_attr.to_dict()])
 
         results = []
         self.option = "single"

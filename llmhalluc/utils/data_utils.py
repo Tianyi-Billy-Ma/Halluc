@@ -13,6 +13,8 @@ def process_dataset(
     num_proc: int = 12,
     hf_push_url: str | None = None,
     force_push: bool = False,
+    batched: bool = False,
+    batch_size: int = 1,
     **kwargs,
 ) -> Dataset | DatasetDict:
     """Process dataset using a converter function.
@@ -45,6 +47,8 @@ def process_dataset(
                 repeat=repeat,
                 num_proc=num_proc,
                 force_push=force_push,
+                batched=batched,
+                batch_size=batch_size,
                 **kwargs,
             )
     else:
@@ -54,9 +58,11 @@ def process_dataset(
 
         # Process dataset
         column_names = dataset.column_names
+
         dataset_to_return = dataset.map(
             processor,
-            batched=False,
+            batched=batched,
+            batch_size=batch_size,
             num_proc=num_proc,
             remove_columns=column_names,
             **kwargs,

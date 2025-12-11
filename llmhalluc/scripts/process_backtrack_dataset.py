@@ -96,7 +96,7 @@ def main(arg_list: list[str] = None) -> None:
     # Handle single split as string
     splits = args.split[0] if args.split and len(args.split) == 1 else args.split
 
-    converter = get_dataset_converter(
+    converter, converter_args = get_dataset_converter(
         args.converter,
         tokenizer=tokenizer,
         option=args.option,
@@ -121,22 +121,25 @@ def main(arg_list: list[str] = None) -> None:
         repeat=args.repeat,
         num_proc=args.num_proc,
         hf_push_url=args.hf_push_url,
+        **converter_args,
     )
 
 
 if __name__ == "__main__":
     arg_list = [
         "--converter",
-        "gsm8k_symbolic_backtrack",
+        "gsm8k_backtrack",
         "--hf_dataset_url",
         "apple/GSM-Symbolic",
         "--hf_push_url",
-        "GSM8K-Symbolic-Backtrack-all",
+        "GSM8K-Backtrack-all",
         "--subset",
         "main",
         "--num_proc",
         "12",
-        "--repeat",
-        "5",
+        "--option",
+        "single",
+        "--prop",
+        "0.5",
     ]
     main(arg_list)

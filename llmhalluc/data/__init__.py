@@ -3,7 +3,11 @@
 from .base import DatasetConverter
 from .squad import SquadDatasetConverter
 from .backtrack import BacktrackDatasetConverter, BACKTRACK_TOKEN
-from .gsm8k import GSM8KDatasetConverter, GSM8KSymbolicDatasetConverter, GSM8KBacktrackDatasetConverter
+from .gsm8k import (
+    GSM8KDatasetConverter,
+    GSM8KSymbolicDatasetConverter,
+    GSM8KBacktrackDatasetConverter,
+)
 
 # Registry of available converters
 DATASET_CONVERTERS = {
@@ -31,7 +35,11 @@ def get_dataset_converter(name: str, **kwargs) -> DatasetConverter:
     if name not in DATASET_CONVERTERS:
         raise ValueError(f"Dataset converter {name} not found.")
 
-    return DATASET_CONVERTERS[name](**kwargs)
+    converter_args = {
+        "batched": name in ["gsm8k_backtrack"],
+        "batch_size": 1 if name in ["gsm8k_backtrack"] else None,
+    }
+    return DATASET_CONVERTERS[name](**kwargs), converter_args
 
 
 __all__ = [

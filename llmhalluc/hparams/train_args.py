@@ -23,6 +23,7 @@ class TrainArguments(BaseArguments):
     ### method
     do_train: bool = True
     do_eval: bool = False
+    do_predict: bool = False
     lora_rank: int = 8
     lora_target: str = "all"
 
@@ -75,7 +76,6 @@ class TrainArguments(BaseArguments):
     compute_accuracy: bool = True
 
     ### Special Tokens
-    new_special_tokens_config: str | None = None  # ./configs/llamafactory/token.yaml
     init_special_tokens: str | None = "desc_init"
     force_init_embeddings: bool = False
     backtrack_token: str | None = None
@@ -112,6 +112,11 @@ class TrainArguments(BaseArguments):
         elif self.stage.lower() == "dpo":
             excludes.remove("pref_loss")
             excludes.remove("pref_beta")
+        elif not self.init_special_tokens:
+            excludes.add("init_special_tokens")
+            excludes.add("force_init_embeddings")
+            excludes.add("backtrack_token")
+            excludes.add("replace_text")
         return excludes
 
     def __post_init__(self):

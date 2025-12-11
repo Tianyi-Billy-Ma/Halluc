@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
+from collections import defaultdict
 
 
 @dataclass
@@ -31,3 +32,19 @@ class DatasetConverter(ABC):
             - Additional converter-specific fields
         """
         pass
+
+    def batch_to_list(self, examples: dict[str, Any]) -> list[dict[str, Any]]:
+        batch_size = len(next(iter(examples.values())))
+        res = []
+        for i in range(batch_size):
+            example = {k: v[i] for k, v in examples.items()}
+            res.append(example)
+        return res
+
+    def list_to_batch(self, examples: list[dict[str, Any]]) -> dict[str, Any]:
+        res = defaultdict(list)
+
+        for example in examples:
+            for k, v in example.items():
+                res[k].append(v)
+        return dict(res)

@@ -3,7 +3,7 @@
 from .base import DatasetConverter
 from .squad import SquadDatasetConverter
 from .backtrack import BacktrackDatasetConverter, BACKTRACK_TOKEN
-from .gsm8k import GSM8KDatasetConverter, GSM8KSymbolicDatasetConverter
+from .gsm8k import GSM8KDatasetConverter, GSM8KSymbolicDatasetConverter, GSM8KBacktrackDatasetConverter
 
 # Registry of available converters
 DATASET_CONVERTERS = {
@@ -11,6 +11,7 @@ DATASET_CONVERTERS = {
     "backtrack": BacktrackDatasetConverter,
     "gsm8k": GSM8KDatasetConverter,
     "gsm8k_symbolic_backtrack": GSM8KSymbolicDatasetConverter,
+    "gsm8k_backtrack": GSM8KBacktrackDatasetConverter,
 }
 
 

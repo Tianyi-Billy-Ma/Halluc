@@ -107,13 +107,13 @@ def patch_train_config(
     if args.init_special_tokens:
         save_config(SPECIAL_TOKEN_MAPPING[template], args.new_special_tokens_config)
 
-    if "llama3" in template:
-        args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
-        args.force_init_embeddings = True
-        args.backtrack_token = "<|reserved_special_token_0|>"
-    elif "qwen3" in template:
-        args.force_init_embeddings = True
-        args.backtrack_token = "<|BACKTRACK|>"
+        if "llama3" in template:
+            args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
+            args.force_init_embeddings = True
+            args.backtrack_token = "<|reserved_special_token_0|>"
+        elif "qwen3" in template:
+            args.force_init_embeddings = True
+            args.backtrack_token = "<|BACKTRACK|>"
     return args
 
 
@@ -127,6 +127,7 @@ def patch_merge_config(
         args.new_special_tokens_config = additional_args.new_special_tokens_config
         args.init_special_tokens = additional_args.init_special_tokens
         args.force_init_embeddings = additional_args.force_init_embeddings
+        args.backtrack_token = additional_args.backtrack_token
 
     args.adapter_name_or_path = additional_args.output_dir
     return args

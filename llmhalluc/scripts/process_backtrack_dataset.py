@@ -71,6 +71,18 @@ def main(arg_list: list[str] = None) -> None:
     parser.add_argument(
         "--redownload", action="store_true", help="Force redownload of the dataset"
     )
+    parser.add_argument(
+        "--option",
+        choices=["all", "half", "random", "single"],
+        default="half",
+        help="Option for backtracking (all, half, random, single)",
+    )
+    parser.add_argument(
+        "--prop",
+        type=float,
+        default=0.5,
+        help="Proportion of examples to to extend. Only valid when option 'single' is selected. ",
+    )
 
     if arg_list is not None:
         args = parser.parse_args(arg_list)
@@ -87,7 +99,8 @@ def main(arg_list: list[str] = None) -> None:
     converter = get_dataset_converter(
         args.converter,
         tokenizer=tokenizer,
-        option="random",
+        option=args.option,
+        prop=args.prop,
     )
 
     dataset = load_dataset(
@@ -98,7 +111,7 @@ def main(arg_list: list[str] = None) -> None:
         if args.redownload
         else "reuse_dataset_if_exists",
     )
-    
+
     dataset["train"] = dataset["test"]
 
     process_dataset(

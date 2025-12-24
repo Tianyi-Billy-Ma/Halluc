@@ -10,6 +10,6 @@
 
 
 source ./bash/sys/init_env.sh llmhalluc
-accelerate launch -m llmhalluc.hf_train
+# accelerate launch -m llmhalluc.hf_train
 python -m llmhalluc.run_eval
 ./bash/sys/notify.sh

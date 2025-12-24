@@ -14,7 +14,7 @@ DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "llmhalluc" / "e2e.yaml"
 
 
 def main():
-    setup_logging(verbose=True)
+    setup_logging(verbose=False)
     setup_dict = hf_cfg_setup(DEFAULT_CONFIG_PATH)
     run_train(setup_dict.args.hf_args)
 

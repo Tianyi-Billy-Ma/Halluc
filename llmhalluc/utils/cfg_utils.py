@@ -64,7 +64,7 @@ def e2e_cfg_setup(config_path: str, save_cfg: bool = True) -> EasyDict:
         )
 
         if extra_args:
-            save_config(extra_args, train_args.new_special_tokens_config)
+            save_config(dict(extra_args), train_args.new_special_tokens_config)
 
     output = {
         "TRAIN_CONFIG_PATH": str(train_args.config_path),

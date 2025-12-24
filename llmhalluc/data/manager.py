@@ -47,7 +47,7 @@ def get_dataset(
     dataset_path: str,
     name: str | None = None,
     split: str | None = None,
-    converter: "DatasetConverter" | str | None = None,
+    converter: DatasetConverter | None = None,
 ) -> Dataset | DatasetDict:
     dataset = load_dataset(dataset_path, name=name, split=split)
     if converter:

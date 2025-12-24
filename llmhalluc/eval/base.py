@@ -1,7 +1,11 @@
 import os
 import subprocess
+import logging
 from copy import deepcopy
 from llmhalluc.utils import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def run_eval(config_path: str):
@@ -26,6 +30,7 @@ def run_eval(config_path: str):
             raise ValueError(f"Invalid value type: {type(val)}")
 
     cmd = ["accelerate", "launch", "-m", "lm_eval"] + args
+    logger.info(f"Running evaluation with command: \n{cmd}")
     subprocess.run(cmd, env=deepcopy(os.environ), check=True)
 
 

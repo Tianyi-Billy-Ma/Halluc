@@ -105,15 +105,18 @@ def patch_train_config(
 
     template = args.template
     if args.init_special_tokens:
-        save_config(SPECIAL_TOKEN_MAPPING[template], args.new_special_tokens_config)
-
         if "llama3" in template:
             args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
             args.force_init_embeddings = True
+            model_name = "llama3"
             args.backtrack_token = "<|reserved_special_token_0|>"
         elif "qwen3" in template:
             args.force_init_embeddings = True
             args.backtrack_token = "<|BACKTRACK|>"
+            model_name = "qwen3"
+        else:
+            raise ValueError(f"Unsupported template: {template}")
+        save_config(SPECIAL_TOKEN_MAPPING[model_name], args.new_special_tokens_config)
     return args
 
 
@@ -170,7 +173,7 @@ def build_configs(config: dict[str, any], plan: dict[str, bool]) -> dict[str, an
     )
     eval_args, *_ = HfArgumentParser((EvaluationArguments,)).parse_dict(
         {
-            "model_path": merge_args.export_dir,
+            "model_path": merge_args.export_dir if train_args.finetuning_type in ["lora"] else train_args.output_dir,
             "run_name": train_args.run_name,
             "exp_path": train_args.exp_path,
             **config,
@@ -218,7 +221,6 @@ def e2e_setup(argv: list[str] | None = None) -> int:
         "MERGE_CONFIG_PATH": str(merge_args.config_path),
         "EVAL_CONFIG_PATH": str(eval_args.config_path),
         "SPECIAL_TOKEN_CONFIG_PATH": str(train_args.new_special_tokens_config or ""),
-        "EVAL_MODE": eval_args.eval_mode,
     }
 
     if args.format == "json":

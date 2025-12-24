@@ -28,8 +28,6 @@ class EvaluationArguments(BaseArguments):
     exp_path: Path = field()
     config_path: Path = field(init=False)
 
-    eval_mode: str = ""
-
     @property
     def yaml_exclude(self):
         return {
@@ -41,7 +39,6 @@ class EvaluationArguments(BaseArguments):
             "model_name",
             "exp_path",
             "config_path",
-            "eval_mode",
         }
 
     def __post_init__(self):
@@ -51,17 +48,8 @@ class EvaluationArguments(BaseArguments):
         self.run_name = f"{self.model_name}_{self.run_name}_{self.stage}"
         self.output_path = str(self.exp_path / "eval" / "results.json")
 
-        if self.eval_mode == "cli":
-            self.model_args = f"pretrained={str(self.model_path)},enable_thinking={self.enable_thinking}"
-            self.wandb_args = f"project={self.wandb_project},name={self.run_name}"
-        else:
-            self.model_args = {
-                "pretrained": str(self.model_path),
-                "enable_thinking": self.enable_thinking,
-                "device_map": "auto",
-            }
-            self.wandb_args = {
-                "project": self.wandb_project,
-                "name": self.run_name,
-            }
+        self.model_args = (
+            f"pretrained={str(self.model_path)},enable_thinking={self.enable_thinking}"
+        )
+        self.wandb_args = f"project={self.wandb_project},name={self.run_name}"
         self.config_path = self.exp_path / "eval_config.yaml"

@@ -14,5 +14,3 @@ SPECIAL_TOKEN_MAPPING = {
 
 MODEL_PATH = "/scratch365/tma2/.cache/halluc/models"
 OUTPUT_PATH = "/scratch365/tma2/.cache/halluc/outputs"
-
-

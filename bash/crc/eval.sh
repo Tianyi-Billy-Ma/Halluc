@@ -11,5 +11,5 @@
 
 source ./bash/sys/init_env.sh llmhalluc
 
-python -m llmhalluc.e2e
+lm_eval 
 ./bash/sys/notify.sh

@@ -53,7 +53,7 @@ class TrainArguments(BaseArguments):
     per_device_train_batch_size: int = 4
     gradient_accumulation_steps: int = 8
     learning_rate: float = 1.0e-4
-    num_train_epochs: float = 3
+    num_train_epochs: float = 5
     lr_scheduler_type: str = "cosine"
     warmup_ratio: float = 0.1
     fp16: bool = True
@@ -117,6 +117,9 @@ class TrainArguments(BaseArguments):
             excludes.add("force_init_embeddings")
             excludes.add("backtrack_token")
             excludes.add("replace_text")
+        if self.finetuning_type != "lora":
+            excludes.add("lora_rank")
+            excludes.add("lora_target")
         return excludes
 
     def __post_init__(self):

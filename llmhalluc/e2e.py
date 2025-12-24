@@ -1,74 +1,107 @@
-import sys
+import argparse
 import os
 from copy import deepcopy
 import subprocess
-import lm_eval
-from lm_eval.config.evaluate_config import EvaluatorConfig
-from llamafactory.cli import main as llamafactory_main
+from pathlib import Path
 
-from llmhalluc.scripts.e2e_setup import e2e_setup
-from llmhalluc.utils.sys_utils import load_config
+from llmhalluc.utils import load_config, setup_logging, e2e_cfg_setup
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "llmhalluc" / "e2e.yaml"
 
 
-def run_eval(mode, config_path):
-    if mode == "default":
-        config = EvaluatorConfig.from_config(config_path)
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Prepare train/merge configs")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=str(DEFAULT_CONFIG_PATH),
+        help="Path to the high-level e2e YAML (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--override",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Override a config entry (can be used multiple times)",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("json", "shell", "else"),
+        default="json",
+        help="Output format for resolved values (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--do-train",
+        type=bool,
+        default=True,
+        metavar="BOOL",
+        help="Generate the train config (default: true)",
+    )
+    parser.add_argument(
+        "--do-merge",
+        type=bool,
+        default=True,
+        metavar="BOOL",
+        help="Generate the merge config (default: true)",
+    )
+    parser.add_argument(
+        "--do-eval",
+        type=bool,
+        default=True,
+        metavar="BOOL",
+        help="Generate the eval config (default: true)",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable debug logging",
+    )
+    return parser.parse_args(argv)
 
-        task_manager = config.process_tasks()
 
-        results = lm_eval.simple_evaluate(
-            model=config.model,
-            model_args=config.model_args,
-            tasks=config.tasks,
-            num_fewshot=config.num_fewshot,
-            batch_size=config.batch_size,
-            device=config.device,
-            task_manager=task_manager,
-            log_samples=config.log_samples,
-            gen_kwargs=config.gen_kwargs,
-            apply_chat_template=config.apply_chat_template,
-            system_instruction=config.system_instruction,
-        )
-        print(results)
-        print(results.keys())
+def run_eval(config_path):
+    eval_config = load_config(config_path)
 
-    else:
-        eval_config = load_config(config_path)
+    args = []
 
-        args = []
+    for key, val in eval_config.items():
+        if isinstance(val, bool) and val:
+            args.append(f"--{key}")
+        elif isinstance(val, str):
+            args.append(f"--{key}")
+            args.append(val)
+        elif isinstance(val, int):
+            args.append(f"--{key}")
+            args.append(str(val))
+        elif isinstance(val, dict):
+            sub_args = ",".join([f"{k}={v}" for k, v in val.items()])
+            args.append(f"--{key}")
+            args.append(sub_args)
+        else:
+            raise ValueError(f"Invalid value type: {type(val)}")
 
-        for key, val in eval_config.items():
-            if isinstance(val, bool) and val:
-                args.append(f"--{key}")
-            elif isinstance(val, str):
-                args.append(f"--{key} {val}")
-            elif isinstance(val, dict):
-                sub_args = ",".join([f"{k}={v}" for k, v in val.items()])
-                args.append(f"--{key} {sub_args}")
-            else:
-                raise ValueError(f"Invalid value type: {type(val)}")
-
-        cmd = ["accelerate", "launch", "lm_eval"] + args
-        subprocess.run(cmd, env=deepcopy(os.environ), check=True)
+    cmd = ["accelerate", "launch", "-m", "lm_eval"] + args
+    subprocess.run(cmd, env=deepcopy(os.environ), check=True)
 
 
 def run_llamafactory(mode, config_path, additional: list[str] | None = None):
     assert mode in ["train", "export"]
-    sys.argv = [
-        "llamafactory-cli",
-        mode,
-        config_path,
-    ] + (additional if additional else [])
-    llamafactory_main()
+
+    cmd = ["llamafactory-cli", mode, config_path] + (additional if additional else [])
+    subprocess.run(cmd, env=deepcopy(os.environ), check=True)
 
 
 def main():
     argv = ["--format", "else"]
-    setup_dict = e2e_setup(argv)
+
+    args = parse_args(argv)
+    setup_logging(verbose=args.verbose)
+    setup_dict = e2e_cfg_setup(args)
     print(setup_dict)
     run_llamafactory("train", setup_dict["TRAIN_CONFIG_PATH"])
     run_llamafactory("export", setup_dict["MERGE_CONFIG_PATH"])
-    run_eval(setup_dict["EVAL_MODE"], setup_dict["EVAL_CONFIG_PATH"])
+    run_eval(setup_dict["EVAL_CONFIG_PATH"])
 
 
 if __name__ == "__main__":

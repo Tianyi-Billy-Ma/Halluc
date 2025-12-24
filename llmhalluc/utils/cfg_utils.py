@@ -40,22 +40,16 @@ def save_config(args: dict[str, any], path: str | Path) -> None:
     OmegaConf.save(OmegaConf.create(args), cfg_path)
 
 
-def e2e_cfg_setup(args, save_config: bool = True) -> int:
-    config = load_config(args.config)
-    config = apply_overrides(config, args.override)
+def e2e_cfg_setup(config_path: str, save_cfg: bool = True) -> EasyDict:
+    config = load_config(config_path)
 
-    plan = {"train": args.do_train, "merge": args.do_merge, "eval": args.do_eval}
-
-    if not any(plan.values()):
-        raise ValueError("At least one stage must be enabled to generate configs.")
-
-    arg_dict = patch_configs(config, plan)
+    arg_dict = patch_configs(config)
     train_args = arg_dict.train_args
     merge_args = arg_dict.merge_args
-    eval_args = arg_dict.merge_args
+    eval_args = arg_dict.eval_args
     extra_args = arg_dict.extra_args
 
-    if save_config:
+    if save_cfg:
         save_config(
             train_args.to_yaml(),
             train_args.config_path,
@@ -79,18 +73,21 @@ def e2e_cfg_setup(args, save_config: bool = True) -> int:
         "SPECIAL_TOKEN_CONFIG_PATH": str(train_args.new_special_tokens_config or ""),
     }
 
-    return EasyDict(paths=output, args=args)
+    return EasyDict(paths=output, args=arg_dict)
 
 
-def hf_cfg_setup(args) -> int:
-    setup_dict = e2e_cfg_setup(args, save_config=False)
-
+def hf_cfg_setup(config_path: str, save_cfg: bool = True) -> EasyDict:
+    setup_dict = e2e_cfg_setup(config_path, save_cfg=save_cfg)
     train_args = setup_dict.args.train_args
 
     hf_args = None
-    if args.stage == "sft":
+    stage = getattr(train_args, "stage", "sft")
+    if stage == "sft":
         raw_args: dict[str, any] = patch_sft_config(train_args)
         hf_args, *_ = HfArgumentParser(SFTArguments).parse_dict(
             raw_args, allow_extra_keys=True
         )
-    return hf_args
+    else:
+        raise ValueError(f"Unsupported stage: {stage}")
+    setup_dict.args.hf_args = hf_args
+    return setup_dict

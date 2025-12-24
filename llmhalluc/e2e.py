@@ -4,7 +4,8 @@ from copy import deepcopy
 import subprocess
 from pathlib import Path
 
-from llmhalluc.utils import load_config, setup_logging, e2e_cfg_setup
+from llmhalluc.utils import setup_logging, e2e_cfg_setup
+from llmhalluc.eval import run_eval
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "llmhalluc" / "e2e.yaml"
@@ -58,31 +59,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Enable debug logging",
     )
     return parser.parse_args(argv)
-
-
-def run_eval(config_path):
-    eval_config = load_config(config_path)
-
-    args = []
-
-    for key, val in eval_config.items():
-        if isinstance(val, bool) and val:
-            args.append(f"--{key}")
-        elif isinstance(val, str):
-            args.append(f"--{key}")
-            args.append(val)
-        elif isinstance(val, int):
-            args.append(f"--{key}")
-            args.append(str(val))
-        elif isinstance(val, dict):
-            sub_args = ",".join([f"{k}={v}" for k, v in val.items()])
-            args.append(f"--{key}")
-            args.append(sub_args)
-        else:
-            raise ValueError(f"Invalid value type: {type(val)}")
-
-    cmd = ["accelerate", "launch", "-m", "lm_eval"] + args
-    subprocess.run(cmd, env=deepcopy(os.environ), check=True)
 
 
 def run_llamafactory(mode, config_path, additional: list[str] | None = None):

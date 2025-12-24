@@ -15,25 +15,21 @@ class SFTArguments(BaseSFTConfig):
         metadata={"help": "The tokenizer name or path to use for training"},
     )
 
-    dataset_path: str = field(
-        default=None, metadata={"help": "The dataset path to use for training"}
+    # Train dataset key (looks up hf_hub_url from dataset_info.json)
+    dataset: str | None = field(
+        default=None,
+        metadata={"help": "The train dataset key in dataset_info.json"},
     )
 
-    dataset_name: str | None = field(
-        default=None, metadata={"help": "The dataset name to use for training"}
+    # Eval dataset key (looks up hf_hub_url from dataset_info.json)
+    eval_dataset: str | None = field(
+        default=None,
+        metadata={"help": "The eval dataset key in dataset_info.json"},
     )
-    # eval_dataset_path: str | None = field(
-    #     default=None, metadata={"help": "The eval dataset path to use for training"}
-    # )
-    # eval_dataset_name: str | None = field(
-    #     default=None, metadata={"help": "The eval dataset name to use for training"}
-    # )
 
     def __post_init__(self):
         super().__post_init__()
         if self.model_name_or_path is None:
             raise ValueError("model_name_or_path is required")
-        if self.dataset_path is None:
-            raise ValueError("dataset_path is required")
-        if self.dataset_name is None:
-            raise ValueError("dataset_name is required")
+        if self.dataset is None:
+            raise ValueError("dataset is required")

@@ -1,7 +1,6 @@
 from transformers import HfArgumentParser
 from easydict import EasyDict
 
-from llmhalluc.data.utils import load_data_config
 from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
 
 from .base_args import BaseArguments
@@ -14,7 +13,6 @@ from .sft_args import SFTArguments
 def patch_train_config(
     args: TrainArguments,
     additional_args: BaseArguments | None = None,
-    plan: dict[str, bool] = {},
 ) -> dict[str, any]:
     """Hook for experiment-specific train config tweaks."""
 
@@ -39,7 +37,6 @@ def patch_train_config(
 def patch_merge_config(
     args: MergeArguments,
     additional_args: BaseArguments | None = None,
-    plan: dict[str, bool] = {},
 ) -> dict[str, any]:
     """Hook for experiment-specific merge config tweaks."""
     if additional_args.init_special_tokens:
@@ -55,44 +52,37 @@ def patch_merge_config(
 def patch_eval_config(
     args: EvaluationArguments,
     additional_args: BaseArguments | None = None,
-    plan: dict[str, bool] = {},
 ) -> dict[str, any]:
     """Hook for experiment-specific eval config tweaks."""
     return args
 
 
 def patch_sft_config(args) -> dict[str, any]:
+    """Patch SFT config for HuggingFace training.
+
+    Args:
+        args: TrainArguments or BaseArguments instance
+
+    Returns:
+        Dictionary with resolved config values
+    """
     if isinstance(args, BaseArguments):
         arg_dict = args.to_yaml()
+    else:
+        arg_dict = dict(args)
 
-    data_config = load_data_config()
-    if "tokenizer_name_or_path" not in arg_dict:
-        arg_dict["tokenizer_name_or_path"] = args.model_name_or_path
-    if "dataset_path" not in arg_dict:
-        dataset_name: str = arg_dict["dataset"]
-        dataset_info = data_config.get(dataset_name, None)
+    # Resolve tokenizer path (default to model path if not specified)
+    if not arg_dict.get("tokenizer_name_or_path"):
+        arg_dict["tokenizer_name_or_path"] = arg_dict.get("model_name_or_path")
 
-        if dataset_info is None:
-            raise ValueError(f"Dataset name {dataset_name} not found in data config")
-        arg_dict["dataset_path"] = dataset_info["hf_hub_url"]
-    # if "eval_dataset" in arg_dict and "eval_dataset_path" not in arg_dict:
-    #     eval_datasetname: str = arg_dict["eval_dataset"]
-    #     eval_dataset_info = data_config.get(eval_datasetname, None)
-    #     if eval_dataset_info is None:
-    #         raise ValueError(
-    #             f"Eval dataset name {eval_datasetname} not found in data config"
-    #         )
-    #     arg_dict["eval_dataset_path"] = eval_dataset_info["hf_hub_url"]
     return arg_dict
 
 
-def patch_configs(config: dict[str, any], plan: dict[str, bool]) -> dict[str, any]:
+def patch_configs(config: dict[str, any]) -> dict[str, any]:
     train_args, *_ = HfArgumentParser([TrainArguments]).parse_dict(
         config, allow_extra_keys=True
     )
-    train_args, extra_args = patch_train_config(
-        args=train_args, additional_args=None, plan=plan
-    )
+    train_args, extra_args = patch_train_config(args=train_args, additional_args=None)
     merge_args, *_ = HfArgumentParser((MergeArguments,)).parse_dict(
         config,
         allow_extra_keys=True,
@@ -100,7 +90,6 @@ def patch_configs(config: dict[str, any], plan: dict[str, bool]) -> dict[str, an
     merge_args = patch_merge_config(
         args=merge_args,
         additional_args=train_args,
-        plan=plan,
     )
     eval_args, *_ = HfArgumentParser((EvaluationArguments,)).parse_dict(
         {
@@ -117,7 +106,6 @@ def patch_configs(config: dict[str, any], plan: dict[str, bool]) -> dict[str, an
     eval_args = patch_eval_config(
         args=eval_args,
         additional_args=train_args,
-        plan=plan,
     )
 
     return EasyDict(

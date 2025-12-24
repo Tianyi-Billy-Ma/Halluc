@@ -8,6 +8,8 @@ def get_model(model_name_or_path: str, **kwargs):
 
     model = patch_model(model)
 
+    return model
+
 
 def get_tokenizer(tokenizer_name_or_path: str, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path, **kwargs)

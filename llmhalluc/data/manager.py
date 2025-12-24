@@ -3,6 +3,7 @@ from datasets import load_dataset, Dataset, DatasetDict
 from .base import DatasetConverter
 from .squad import SquadDatasetConverter
 from .backtrack import BacktrackDatasetConverter
+from .sft import SFTDatasetConverter
 from .gsm8k import (
     GSM8KDatasetConverter,
     GSM8KSymbolicDatasetConverter,
@@ -15,6 +16,7 @@ DATASET_CONVERTERS = {
     "gsm8k": GSM8KDatasetConverter,
     "gsm8k_symbolic_backtrack": GSM8KSymbolicDatasetConverter,
     "gsm8k_backtrack": GSM8KBacktrackDatasetConverter,
+    "sft": SFTDatasetConverter,
 }
 
 

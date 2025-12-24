@@ -10,13 +10,13 @@ from llmhalluc.data import DatasetConverter, get_dataset
 from llmhalluc.models import get_model, get_tokenizer
 from llmhalluc.hparams import SFTArguments
 
-from .sft import run_sft
-
 logger = logging.getLogger(__name__)
 
 
 def run_train(args):
     if isinstance(args, SFTArguments):
+        from .sft import run_sft
+
         run_sft(args)
     else:
         raise ValueError(f"Unknown support argument type: {type(args)}")
@@ -36,6 +36,7 @@ class BaseExecutor(ABC):
     ):
         self.args = args
         self.save_model = save_model
+        self.converter = converter  # Store the converter
 
         if not isinstance(model, PreTrainedModel):
             self.setup_model()

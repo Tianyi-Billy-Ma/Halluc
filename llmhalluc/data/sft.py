@@ -36,25 +36,16 @@ class SFTDatasetConverter(DatasetConverter):
 
         # Add system message if prompt exists
         prompt_content = example.get(self.prompt_key, "")
-        if prompt_content:
-            messages.append({
-                "role": "system",
-                "content": prompt_content
-            })
-
-        # Add user message
         query_content = example.get(self.query_key, "")
-        if query_content:
-            messages.append({
-                "role": "user",
-                "content": query_content
-            })
+        if query_content and prompt_content:
+            messages.append(
+                {"role": "system", "content": query_content + "\n" + prompt_content}
+            )
+        else:
+            raise ValueError("Query and prompt content must be provided.")
 
         # Add assistant response
         response_content = example.get(self.response_key, "")
-        messages.append({
-            "role": "assistant",
-            "content": response_content
-        })
+        messages.append({"role": "assistant", "content": response_content})
 
         return {"messages": messages}

@@ -15,11 +15,13 @@ class EvaluationArguments(BaseArguments):
     wandb_args: str = ""
 
     log_samples: bool = True
-    apply_chat_template: bool = True
+    apply_chat_template: bool = False
     confirm_run_unsafe_code: bool = True
     include_path: str = "./configs/lm_eval/tasks"
 
     wandb_project: str = "llamafactory"
+    disable_wandb: bool = True
+
     enable_thinking: bool = False
     stage: str
     run_name: str
@@ -30,7 +32,7 @@ class EvaluationArguments(BaseArguments):
 
     @property
     def yaml_exclude(self):
-        return {
+        excludes = {
             "wandb_project",
             "enable_thinking",
             "stage",
@@ -39,7 +41,11 @@ class EvaluationArguments(BaseArguments):
             "model_name",
             "exp_path",
             "config_path",
+            "disable_wandb",
         }
+        if self.disable_wandb:
+            excludes.add("wandb_args")
+        return excludes
 
     def __post_init__(self):
         self.model_path = Path(self.model_path)
@@ -48,8 +54,11 @@ class EvaluationArguments(BaseArguments):
         self.run_name = f"{self.model_name}_{self.run_name}_{self.stage}"
         self.output_path = str(self.exp_path / "eval" / "results.json")
 
-        self.model_args = (
-            f"pretrained={str(self.model_path)},enable_thinking={self.enable_thinking}"
-        )
-        self.wandb_args = f"project={self.wandb_project},name={self.run_name}"
+        self.model_args = f"pretrained={str(self.model_path)}"
+        if self.enable_thinking:
+            self.model_args += f",enable_thinking={self.enable_thinking}"
+        if not self.disable_wandb:
+            self.wandb_args = f"project={self.wandb_project},name={self.run_name}"
+        else:
+            self.wandb_args = None
         self.config_path = self.exp_path / "eval_config.yaml"

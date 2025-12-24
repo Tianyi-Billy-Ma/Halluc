@@ -22,7 +22,7 @@ eval_dataset: gsm8k_symbolic_sft_eval
 
 # Evaluation
 model: hf
-tasks: gsm8k
+tasks: gsm8k_custom
 eval_mode: cli
 
 # WandB

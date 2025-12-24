@@ -9,6 +9,9 @@ This project focuses on **new autoregression generation** in large language mode
 ### Llama-Factory for Training LLMs 
 We use [Llama-Factory](https://github.com/hiyouga/LLaMA-Factory) for training LLMs.
 
+### Train with Transformers
+Alternatively, we directly use Hugging Face Transformers for training.
+
 
 ## Evaluation Pipeline 
 

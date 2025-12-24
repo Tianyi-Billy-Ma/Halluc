@@ -4,7 +4,7 @@ from datasets import DatasetDict, load_dataset
 from .base import BaseExecutor
 from llmhalluc.hparams import SFTArguments
 from llmhalluc.data import load_data_config, SFTDatasetConverter
-from llmhalluc.utils import process_dataset
+from llmhalluc.utils import process_dataset, print_dataset
 
 
 class SFTExecutor(BaseExecutor):
@@ -88,6 +88,8 @@ class SFTExecutor(BaseExecutor):
                 processor=eval_converter,
             )
             self.dataset["eval"] = eval_dataset
+
+        print_dataset(self.dataset)
 
     def setup_trainer(self):
         """Setup SFTTrainer with the loaded model, tokenizer, and dataset."""

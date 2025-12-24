@@ -3,6 +3,23 @@
 from pathlib import Path
 from typing import Any, Callable
 from datasets import Dataset, DatasetDict
+import json
+
+
+def print_dataset(dataset: Dataset | DatasetDict, n: int = 1) -> None:
+    """Print a sample from a dataset.
+
+    Args:
+        dataset: Dataset or DatasetDict to sample from.
+        n: Number of samples to print.
+    """
+    if isinstance(dataset, DatasetDict):
+        for split, ds in dataset.items():
+            print(f"=== Split: {split} ===")
+            print_dataset(ds, n)
+    else:
+        for i in range(min(n, len(dataset))):
+            print(json.dumps(dataset[i], indent=2, default=str))
 
 
 def process_dataset(

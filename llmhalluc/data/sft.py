@@ -32,20 +32,30 @@ class SFTDatasetConverter(DatasetConverter):
         Returns:
             Example with 'messages' field containing list of role/content dicts.
         """
-        messages = []
-
-        # Add system message if prompt exists
         prompt_content = example.get(self.prompt_key, "")
         query_content = example.get(self.query_key, "")
-        if query_content and prompt_content:
-            messages.append(
-                {"role": "system", "content": query_content + "\n" + prompt_content}
-            )
-        else:
-            raise ValueError("Query and prompt content must be provided.")
-
-        # Add assistant response
         response_content = example.get(self.response_key, "")
-        messages.append({"role": "assistant", "content": response_content})
+        return {
+            "prompt": [
+                {"role": "user", "content": query_content + "\n" + prompt_content}
+            ],
+            "completion": [{"role": "assistant", "content": response_content}],
+        }
 
-        return {"messages": messages}
+        # messages = []
+
+        # # Add system message if prompt exists
+        # prompt_content = example.get(self.prompt_key, "")
+        # query_content = example.get(self.query_key, "")
+        # if query_content and prompt_content:
+        #     messages.append(
+        #         {"role": "system", "content": query_content + "\n" + prompt_content}
+        #     )
+        # else:
+        #     raise ValueError("Query and prompt content must be provided.")
+
+        # # Add assistant response
+        # response_content = example.get(self.response_key, "")
+        # messages.append({"role": "assistant", "content": response_content})
+
+        # return {"messages": messages}

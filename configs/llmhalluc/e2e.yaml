@@ -1,5 +1,5 @@
 # Experiment
-run_name: gsm8k_bt
+run_name: gsm8k
 
 
 # Model
@@ -13,8 +13,8 @@ stage: sft
 finetuning_type: full
 
 # Dataset
-dataset: gsm8k_bt_sft_train
-eval_dataset: gsm8k_bt_sft_eval
+dataset: gsm8k_train
+eval_dataset: gsm8k_eval
 # eval_dataset: gsm8k_symbolic_sft_eval
 # dataset: gsm8k_backtrack_sft_train
 # eval_dataset: gsm8k_backtrack_sft_eval

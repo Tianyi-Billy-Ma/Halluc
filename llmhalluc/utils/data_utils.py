@@ -37,6 +37,7 @@ def process_dataset(
     force_push: bool = False,
     batched: bool = False,
     batch_size: int = 1,
+    load_from_cache_file: bool = True,
     **kwargs,
 ) -> Dataset | DatasetDict:
     """Process dataset using a converter function.
@@ -87,6 +88,7 @@ def process_dataset(
             batch_size=batch_size,
             num_proc=num_proc,
             remove_columns=column_names,
+            load_from_cache_file=load_from_cache_file,
             **kwargs,
         )
     if hf_push_url is not None:

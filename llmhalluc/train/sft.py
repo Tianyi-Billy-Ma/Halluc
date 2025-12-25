@@ -52,6 +52,7 @@ class SFTExecutor(BaseExecutor):
             dataset=train_dataset,
             processor=sft_converter,
             split=train_split,
+            load_from_cache_file=False,
         )
 
         # Build DatasetDict
@@ -90,6 +91,7 @@ class SFTExecutor(BaseExecutor):
                 dataset=eval_dataset,
                 processor=eval_converter,
                 split=eval_split,
+                load_from_cache_file=False,
             )
             self.dataset["eval"] = eval_dataset
 

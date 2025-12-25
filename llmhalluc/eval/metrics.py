@@ -1,42 +1,40 @@
-import string
-import numpy as np
-import re
+from lm_eval.api.registry import register_metric, register_aggregation
+from rouge_score import rouge_scorer
 
 
-def accuracy_fn(predictions, targets):
-    return np.mean(predictions == targets)
+def _compute_rouge(items, rouge_type):
+    """Compute ROUGE score for a list of (reference, prediction) pairs."""
+    scorer = rouge_scorer.RougeScorer([rouge_type], use_stemmer=True)
+    refs, preds = zip(*items)
+    scores = [scorer.score(str(r), str(p))[rouge_type].fmeasure for r, p in zip(refs, preds)]
+    return sum(scores) / len(scores)
 
 
-def exact_match_fn(
-    predictions,
-    references,
-    regexes_to_ignore=None,
-    ignore_case=False,
-    ignore_punctuation=False,
-    ignore_numbers=False,
-):
-    if regexes_to_ignore is not None:
-        for s in regexes_to_ignore:
-            predictions = np.array([re.sub(s, "", x) for x in predictions])
-            references = np.array([re.sub(s, "", x) for x in references])
-    else:
-        predictions = np.asarray(predictions)
-        references = np.asarray(references)
+@register_aggregation("rouge1")
+def rouge1_agg(items):
+    return _compute_rouge(items, "rouge1")
 
-    if ignore_case:
-        predictions = np.char.lower(predictions)
-        references = np.char.lower(references)
 
-    if ignore_punctuation:
-        repl_table = string.punctuation.maketrans("", "", string.punctuation)
-        predictions = np.char.translate(predictions, table=repl_table)
-        references = np.char.translate(references, table=repl_table)
+@register_aggregation("rouge2")
+def rouge2_agg(items):
+    return _compute_rouge(items, "rouge2")
 
-    if ignore_numbers:
-        repl_table = string.digits.maketrans("", "", string.digits)
-        predictions = np.char.translate(predictions, table=repl_table)
-        references = np.char.translate(references, table=repl_table)
 
-    score_list = predictions == references
+@register_aggregation("rougeL")
+def rougeL_agg(items):
+    return _compute_rouge(items, "rougeL")
 
-    return {"exact_match": np.mean(score_list)}
+
+@register_metric(metric="rouge1", higher_is_better=True, output_type="generate_until", aggregation="rouge1")
+def rouge1_fn(items):
+    return items
+
+
+@register_metric(metric="rouge2", higher_is_better=True, output_type="generate_until", aggregation="rouge2")
+def rouge2_fn(items):
+    return items
+
+
+@register_metric(metric="rougeL", higher_is_better=True, output_type="generate_until", aggregation="rougeL")
+def rougeL_fn(items):
+    return items

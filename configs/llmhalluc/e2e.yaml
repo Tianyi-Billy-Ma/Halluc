@@ -7,14 +7,14 @@ run_name: gsm8k_bt
 # model_name_or_path: meta-llama/Llama-3.2-1B
 model_name_or_path: meta-llama/Llama-3.2-1B
 
-# template: llama3
-template: llama3_bt
+template: llama3
+# template: llama3_bt
 stage: sft
 finetuning_type: full
 
 # Dataset
-dataset: gsm8k_symbolic_sft_train
-eval_dataset: gsm8k_symbolic_sft_eval
+dataset: gsm8k_bt_sft_train
+eval_dataset: gsm8k_bt_sft_eval
 # eval_dataset: gsm8k_symbolic_sft_eval
 # dataset: gsm8k_backtrack_sft_train
 # eval_dataset: gsm8k_backtrack_sft_eval

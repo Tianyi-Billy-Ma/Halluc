@@ -32,6 +32,7 @@ class SFTExecutor(BaseExecutor):
                 f"Dataset '{self.args.dataset}' does not have 'hf_hub_url' in dataset_info.json"
             )
 
+        train_split = train_info.get("split", "train")
         train_dataset = load_dataset(
             train_hf_url,
             name=train_info.get("subset"),
@@ -50,6 +51,7 @@ class SFTExecutor(BaseExecutor):
         train_dataset = process_dataset(
             dataset=train_dataset,
             processor=sft_converter,
+            split=train_split,
         )
 
         # Build DatasetDict
@@ -69,6 +71,7 @@ class SFTExecutor(BaseExecutor):
                     f"Eval dataset '{self.args.eval_dataset}' does not have 'hf_hub_url' in dataset_info.json"
                 )
 
+            eval_split = eval_info.get("split", "test")
             eval_dataset = load_dataset(
                 eval_hf_url,
                 name=eval_info.get("subset"),
@@ -86,6 +89,7 @@ class SFTExecutor(BaseExecutor):
             eval_dataset = process_dataset(
                 dataset=eval_dataset,
                 processor=eval_converter,
+                split=eval_split,
             )
             self.dataset["eval"] = eval_dataset
 

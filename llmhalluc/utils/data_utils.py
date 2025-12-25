@@ -7,12 +7,17 @@ import json
 
 
 def print_dataset(dataset: Dataset | DatasetDict, n: int = 1) -> None:
-    """Print a sample from a dataset.
+    """Print a sample from a dataset (only on rank 0).
 
     Args:
         dataset: Dataset or DatasetDict to sample from.
         n: Number of samples to print.
     """
+    import torch.distributed as dist
+
+    if dist.is_initialized() and dist.get_rank() != 0:
+        return
+
     if isinstance(dataset, DatasetDict):
         for split, ds in dataset.items():
             print(f"=== Split: {split} ===")

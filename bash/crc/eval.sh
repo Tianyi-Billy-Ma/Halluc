@@ -13,8 +13,8 @@ source ./bash/sys/init_env.sh llmhalluc
 
 lm_eval --model hf \
     --model_args pretrained=/users/tma2/Projects/ReVISE/outputs/step-0-sft \
-    --tasks gsm8k_custom \
-    --output_path /scratch365/tma2/Projects/Halluc/outputs/lm_eval/gsm8k_custom \
+    --tasks gsm8k_comprehensive \
+    --output_path /users/tma2/Projects/Halluc/outputs/llama-3.2-1b/gsm8k/sft/eval \
     --log_samples \
     --include_path ./configs/lm_eval/tasks
 ./bash/sys/notify.sh

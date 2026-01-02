@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 from pathlib import Path
 from llmhalluc.hparams.base_args import BaseArguments
-from llmhalluc.extras.constant import OUTPUT_PATH
+from llmhalluc.extras import OUTPUT_PATH
 
 
 @dataclass(kw_only=True)

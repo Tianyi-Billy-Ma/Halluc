@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from llmhalluc.hparams.base_args import BaseArguments
-from llmhalluc.extras.constant import OUTPUT_PATH
 
 
 @dataclass(kw_only=True)

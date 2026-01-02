@@ -10,3 +10,8 @@ def resolve_path(path_str: str) -> Path:
         path = REPO_ROOT / path_str
     return path.expanduser().resolve()
 
+
+def is_dir(path: str | Path) -> bool:
+    """Check if path is a directory (no file extension)."""
+    return Path(path).suffix == ""
+

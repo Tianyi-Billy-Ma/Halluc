@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name="llmhalluc"
 #SBATCH --partition=ghx4
-#SBATCH --mem=64G
+#SBATCH --mem=240G
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
@@ -10,7 +10,7 @@
 #SBATCH --account=bemy-dtai-gh
 #SBATCH --exclusive
 #SBATCH --no-requeue
-#SBATCH -t 02:00:00
+#SBATCH -t 04:00:00
 #SBATCH -e ./logs/slurm-%j.err
 #SBATCH -o ./logs/slurm-%j.out
 #SBATCH --mail-user=tma2@nd.edu

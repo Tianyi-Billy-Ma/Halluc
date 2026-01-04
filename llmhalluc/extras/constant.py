@@ -21,5 +21,9 @@ POSSIBLE_CACHE_DIR = [
 
 CACHE_DIR = None
 CACHE_PATH = None
-MODEL_PATH = "/scratch365/tma2/.cache/halluc/models"
-OUTPUT_PATH = "/scratch365/tma2/.cache/halluc/outputs"
+# MODEL_PATH = "/scratch365/tma2/.cache/halluc/models"
+# OUTPUT_PATH = "/scratch365/tma2/.cache/halluc/outputs"
+# MODEL_PATH = "/work/nvme/bemy/tma3/.cache/halluc/models"
+# OUTPUT_PATH = "/work/nvme/bemy/tma3/.cache/halluc/outputs"
+MODEL_PATH = "./models"
+OUTPUT_PATH = "./outputs"

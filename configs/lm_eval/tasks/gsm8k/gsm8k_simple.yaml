@@ -1,0 +1,49 @@
+tag:
+  - math_word_problems
+task: gsm8k_simple
+dataset_path: gsm8k
+dataset_name: main
+output_type: generate_until
+training_split: train
+fewshot_split: train
+test_split: test
+doc_to_text: "Question: {{question}}\nLet's think step by step. Put your final answer at the end starts with `###`.\nAnswer:"
+doc_to_target: "{{answer}}"
+
+# Use custom process_results function
+process_results: !function utils.process_results
+
+# Define metrics that will be returned by process_results
+metric_list:
+  - metric: exact_match,strict-match
+    aggregation: mean
+    higher_is_better: true
+  - metric: exact_match,flexible-extract
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge1
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge2
+    aggregation: mean
+    higher_is_better: true
+  - metric: rougeL
+    aggregation: mean
+    higher_is_better: true
+
+generation_kwargs:
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+
+repeats: 1
+num_fewshot: 5
+
+metadata:
+  version: 3.0

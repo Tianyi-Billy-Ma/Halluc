@@ -57,6 +57,7 @@ class TrainArguments(BaseArguments):
     lr_scheduler_type: str = "cosine"
     warmup_ratio: float = 0.1
     fp16: bool = True
+    bf16: bool = False
     ddp_timeout: int = 180000000
     resume_from_checkpoint: Optional[str] = None
     save_total_limit: int = 1

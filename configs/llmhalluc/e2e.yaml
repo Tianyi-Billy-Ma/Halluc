@@ -12,6 +12,8 @@ template: llama3
 # template: llama3_bt
 stage: sft
 finetuning_type: full
+fp16: false
+bf16: true
 
 # Dataset
 dataset: gsm8k_train

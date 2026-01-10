@@ -2,7 +2,12 @@
 
 from .data_utils import process_dataset, print_dataset
 from .log_utils import setup_logging
-from .cfg_utils import e2e_cfg_setup, hf_cfg_setup, load_config
+from llmhalluc.hparams.parser import (
+    e2e_cfg_setup,
+    hf_cfg_setup,
+    load_config,
+    parse_cli_to_dotlist,
+)
 
 __all__ = [
     "process_dataset",
@@ -11,4 +16,5 @@ __all__ = [
     "e2e_cfg_setup",
     "hf_cfg_setup",
     "load_config",
+    "parse_cli_to_dotlist",
 ]

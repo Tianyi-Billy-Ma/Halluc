@@ -18,23 +18,36 @@ class TrainArguments(BaseArguments):
 
     ### accelerator
     flash_attn: str = "fa2"
-    deepspeed: str | None = "configs/llamafactory/deepspeed/ds_z0_config.json"
+    deepspeed: str | None = "./configs/deepspeed/ds_z0_config.json"
 
     ### method
     do_train: bool = True
     do_eval: bool = False
     do_predict: bool = False
+
+    ### Lora
     lora_rank: int = 8
+    lora_alpha: int = 16
+    lora_dropout: float = 0.05
     lora_target: str = "all"
+
+    # QLoRA (4-bit quantization)
+    load_in_4bit: bool = False
+    bnb_4bit_compute_dtype: str = "bfloat16"
+    bnb_4bit_quant_type: str = "nf4"
+    bnb_4bit_use_double_quant: bool = True
 
     # wandb
     wandb_project: str = "llamafactory"
+    report_to: str = "none"
 
     ### dataset
     dataset: str
     dataset_dir: str = "./data"
     cutoff_len: int = 2048
     overwrite_cache: bool = True
+    load_from_cache_file: bool = False
+    converter: str = ""
     preprocessing_num_workers: int = 8
     dataloader_num_workers: int = 4
 
@@ -45,7 +58,6 @@ class TrainArguments(BaseArguments):
     plot_loss: bool = True
     overwrite_output_dir: bool = True
     save_only_model: bool = False
-    report_to: str | None = "wandb"
 
     ### train
     stage: str
@@ -53,7 +65,7 @@ class TrainArguments(BaseArguments):
     per_device_train_batch_size: int = 4
     gradient_accumulation_steps: int = 8
     learning_rate: float = 1.0e-4
-    num_train_epochs: float = 5
+    num_train_epochs: float = 3
     lr_scheduler_type: str = "cosine"
     warmup_ratio: float = 0.1
     fp16: bool = True
@@ -95,6 +107,9 @@ class TrainArguments(BaseArguments):
     reward_model: str = ""
     reward_model_type: str = ""
 
+    # SFT
+    compute_only_loss: bool = False
+
     @property
     def yaml_exclude(self):
         excludes = {
@@ -118,20 +133,35 @@ class TrainArguments(BaseArguments):
             excludes.add("force_init_embeddings")
             excludes.add("backtrack_token")
             excludes.add("replace_text")
-        if self.finetuning_type != "lora":
+        if self.finetuning_type not in ["lora", "qlora"]:
             excludes.add("lora_rank")
+            excludes.add("lora_alpha")
+            excludes.add("lora_dropout")
             excludes.add("lora_target")
+        if self.finetuning_type != "qlora" and not self.load_in_4bit:
+            excludes.add("load_in_4bit")
+            excludes.add("bnb_4bit_compute_dtype")
+            excludes.add("bnb_4bit_quant_type")
+            excludes.add("bnb_4bit_use_double_quant")
         return excludes
 
     def __post_init__(self):
         self.model_name = Path(self.model_name_or_path).name.lower()
 
-        self.exp_path = Path(OUTPUT_PATH) / self.model_name / self.run_name / self.stage
+        self.exp_path = None
+        if self.output_dir is None:
+            self.exp_path = (
+                Path(OUTPUT_PATH) / self.model_name / self.run_name / self.stage
+            )
+            self.output_dir = str(self.exp_path / "train")
+        else:
+            self.exp_path = Path(self.output_dir).parent
 
-        self.run_name = f"{self.model_name}_{self.run_name}_{self.stage}"
+        model_name, run_name, stage = self.model_name, self.run_name, self.stage
 
-        self.output_dir = str(self.exp_path / "train")
+        self.run_name = f"{model_name}_{run_name}_{stage}"
         self.config_path = self.exp_path / "train_config.yaml"
+
         if self.init_special_tokens:
             self.new_special_tokens_config = str(
                 self.exp_path / "special_token_config.yaml"
@@ -154,4 +184,4 @@ class TrainArguments(BaseArguments):
         if torch.cuda.device_count() <= 1:
             self.deepspeed = None
 
-        self.report_to = None
+        # self.report_to = "none"

@@ -1,62 +1,6 @@
 {
-    "gsm8k_backtrack_dpo_train": {
-        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
-        "formatting": "alpaca",
-        "ranking": true,
-        "split": "train",
-        "columns": {
-            "prompt": "prompt",
-            "query": "query",
-            "chosen": "backtrack_response",
-            "rejected": "original_response"
-        }
-    },
-    "gsm8k_backtrack_dpo_eval": {
-        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
-        "formatting": "alpaca",
-        "ranking": true,
-        "split": "test",
-        "columns": {
-            "prompt": "prompt",
-            "query": "query",
-            "chosen": "backtrack_response",
-            "rejected": "original_response"
-        }
-    },
-    "gsm8k_backtrack_sft_train": {
-        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
-        "formatting": "alpaca",
-        "split": "train",
-        "columns": {
-            "prompt": "prompt",
-            "query": "query",
-            "backtrack_content": "backtrack_prefix",
-            "response": "backtrack_suffix"
-        }
-    },
-    "gsm8k_backtrack_sft_eval": {
-        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
-        "formatting": "alpaca",
-        "split": "test",
-        "columns": {
-            "prompt": "prompt",
-            "query": "query",
-            "backtrack_content": "backtrack_prefix",
-            "response": "backtrack_suffix"
-        }
-    },
-    "gsm8k_symbolic_ppo": {
-        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
-        "formatting": "alpaca",
-        "split": "train",
-        "columns": {
-            "prompt": "prompt",
-            "query": "query",
-            "response": "backtrack_response"
-        }
-    },
     "gsm8k_bt_sft_train": {
-        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
         "formatting": "alpaca",
         "split": "train",
         "columns": {
@@ -66,37 +10,13 @@
         }
     },
     "gsm8k_bt_sft_eval": {
-        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
         "formatting": "alpaca",
         "split": "test",
         "columns": {
             "prompt": "prompt",
             "query": "query",
             "response": "response"
-        }
-    },
-    "gsm8k_symbolic_dpo_train": {
-        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
-        "formatting": "alpaca",
-        "ranking": true,
-        "split": "train",
-        "columns": {
-            "prompt": "prompt",
-            "query": "query",
-            "chosen": "backtrack_response",
-            "rejected": "original_response"
-        }
-    },
-    "gsm8k_symbolic_dpo_eval": {
-        "hf_hub_url": "mtybilly/GSM8K-Symbolic-Backtrack-all",
-        "formatting": "alpaca",
-        "ranking": true,
-        "split": "test",
-        "columns": {
-            "prompt": "prompt",
-            "query": "query",
-            "chosen": "backtrack_response",
-            "rejected": "original_response"
         }
     },
     "gsm8k_train": {

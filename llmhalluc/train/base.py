@@ -8,6 +8,7 @@ from transformers import PreTrainedModel, PreTrainedTokenizer
 
 from llmhalluc.data import DatasetConverter, get_dataset
 from llmhalluc.models import get_model, get_tokenizer
+from llmhalluc.models.peft import get_quantization_config
 from llmhalluc.hparams import SFTArguments
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,22 @@ class BaseExecutor(ABC):
         pass
 
     def setup_model(self):
-        self.model = get_model(self.args.model_name_or_path)
+        model_kwargs = {
+            "low_cpu_mem_usage": True,
+            "trust_remote_code": getattr(self.args, "trust_remote_code", True),
+        }
+        if getattr(self.args, "bf16", False):
+            model_kwargs["torch_dtype"] = torch.bfloat16
+        elif getattr(self.args, "fp16", False):
+            model_kwargs["torch_dtype"] = torch.float16
+
+        # Add quantization config for QLoRA
+        quant_config = get_quantization_config(self.args)
+        if quant_config is not None:
+            model_kwargs["quantization_config"] = quant_config
+            model_kwargs["device_map"] = "auto"
+
+        self.model = get_model(self.args.model_name_or_path, **model_kwargs)
 
     def setup_tokenizer(self):
         self.tokenizer = get_tokenizer(self.args.tokenizer_name_or_path)

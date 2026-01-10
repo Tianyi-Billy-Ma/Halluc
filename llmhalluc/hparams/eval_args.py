@@ -51,7 +51,12 @@ class EvaluationArguments(BaseArguments):
         self.model_name = self.model_path.name.lower()
 
         self.run_name = f"{self.model_name}_{self.run_name}_{self.stage}"
-        self.output_path = str(self.exp_path / "eval" / "results.json")
+
+        if isinstance(self.tasks, list):
+            task_str = "_".join(self.tasks)
+        else:
+            task_str = self.tasks
+        self.output_path = str(self.exp_path / "eval" / task_str / "results.json")
 
         self.model_args = f"pretrained={str(self.model_path)}"
         if self.enable_thinking:

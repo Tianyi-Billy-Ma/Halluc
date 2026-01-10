@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 
 def str2bool(value):
@@ -13,3 +14,14 @@ def str2bool(value):
         return False
 
     raise argparse.ArgumentTypeError(f"Expected a boolean value, got {value!r}")
+
+
+def path2str(value):
+    if isinstance(value, Path):
+        return str(value)
+    return value
+
+
+def normalized(value):
+    value = path2str(value)
+    return value

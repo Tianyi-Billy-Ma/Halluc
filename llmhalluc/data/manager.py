@@ -8,6 +8,7 @@ from .gsm8k import (
     GSM8KDatasetConverter,
     GSM8KSymbolicDatasetConverter,
     GSM8KBacktrackDatasetConverter,
+    GSM8KSFTConverter,
 )
 
 DATASET_CONVERTERS = {
@@ -17,6 +18,7 @@ DATASET_CONVERTERS = {
     "gsm8k_symbolic_backtrack": GSM8KSymbolicDatasetConverter,
     "gsm8k_backtrack": GSM8KBacktrackDatasetConverter,
     "sft": SFTDatasetConverter,
+    "gsm8k_sft": GSM8KSFTConverter,
 }
 
 
@@ -36,11 +38,11 @@ def get_dataset_converter(name: str, **kwargs) -> DatasetConverter:
     if name not in DATASET_CONVERTERS:
         raise ValueError(f"Dataset converter {name} not found.")
 
-    converter_args = {
+    mapping_args = {
         "batched": name in ["gsm8k_backtrack"],
         "batch_size": 1 if name in ["gsm8k_backtrack"] else None,
     }
-    return DATASET_CONVERTERS[name](**kwargs), converter_args
+    return DATASET_CONVERTERS[name](**kwargs), mapping_args
 
 
 def get_dataset(
@@ -48,12 +50,13 @@ def get_dataset(
     name: str | None = None,
     split: str | None = None,
     converter: DatasetConverter | None = None,
+    converter_args: dict | None = None,
 ) -> Dataset | DatasetDict:
     dataset = load_dataset(dataset_path, name=name, split=split)
     if converter:
         if isinstance(converter, str):
-            converter, converter_args = get_dataset_converter(converter)
+            converter, mapping_args = get_dataset_converter(converter, **converter_args)
         dataset = dataset.map(
-            converter, remove_columns=dataset.column_names, **converter_args
+            converter, remove_columns=dataset.column_names, **mapping_args
         )
     return dataset

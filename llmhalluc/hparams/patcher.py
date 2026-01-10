@@ -1,3 +1,4 @@
+from pathlib import Path
 from transformers import HfArgumentParser
 from easydict import EasyDict
 
@@ -54,6 +55,24 @@ def patch_eval_config(
     additional_args: BaseArguments | None = None,
 ) -> dict[str, any]:
     """Hook for experiment-specific eval config tweaks."""
+    if additional_args:
+        finetuning_type = getattr(additional_args, "finetuning_type", "full")
+
+        if finetuning_type in ["lora", "qlora"]:
+            # For LoRA: use base model as pretrained, and add peft arg pointing to adapter
+            base_model = additional_args.model_name_or_path
+            adapter_path = additional_args.output_dir
+
+            args.model_path = Path(base_model)
+
+            # Reconstruct model_args
+            new_model_args = f"pretrained={base_model},peft={adapter_path}"
+
+            if args.enable_thinking:
+                new_model_args += f",enable_thinking={args.enable_thinking}"
+
+            args.model_args = new_model_args
+
     return args
 
 
@@ -67,7 +86,7 @@ def patch_sft_config(args) -> dict[str, any]:
         Dictionary with resolved config values
     """
     if isinstance(args, BaseArguments):
-        arg_dict = args.to_yaml()
+        arg_dict = args.to_yaml(exclude=False)
     else:
         arg_dict = dict(args)
 
@@ -75,6 +94,8 @@ def patch_sft_config(args) -> dict[str, any]:
     if not arg_dict.get("tokenizer_name_or_path"):
         arg_dict["tokenizer_name_or_path"] = arg_dict.get("model_name_or_path")
 
+    if arg_dict.get("config_path"):
+        arg_dict["config_path"] = arg_dict.get("config_path").parent / "sft_config.yaml"
     return arg_dict
 
 
@@ -83,6 +104,7 @@ def patch_configs(config: dict[str, any]) -> dict[str, any]:
         config, allow_extra_keys=True
     )
     train_args, extra_args = patch_train_config(args=train_args, additional_args=None)
+
     merge_args, *_ = HfArgumentParser((MergeArguments,)).parse_dict(
         config,
         allow_extra_keys=True,
@@ -91,11 +113,11 @@ def patch_configs(config: dict[str, any]) -> dict[str, any]:
         args=merge_args,
         additional_args=train_args,
     )
+
+    # Use output_dir as default model_path (will be fixed in patch_eval_config if LoRA)
     eval_args, *_ = HfArgumentParser((EvaluationArguments,)).parse_dict(
         {
-            "model_path": merge_args.export_dir
-            if train_args.finetuning_type in ["lora"]
-            else train_args.output_dir,
+            "model_path": train_args.output_dir,
             "run_name": train_args.run_name,
             "exp_path": train_args.exp_path,
             **config,

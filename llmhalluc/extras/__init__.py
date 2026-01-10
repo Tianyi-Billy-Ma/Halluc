@@ -5,21 +5,25 @@ from .constant import POSSIBLE_CACHE_DIR, CACHE_DIR, CACHE_PATH, MODEL_PATH, OUT
 
 def _init_cache_dir():
     global CACHE_DIR, CACHE_PATH, MODEL_PATH, OUTPUT_PATH
-    for path in POSSIBLE_CACHE_DIR:
-        if os.path.exists(path):
-            CACHE_DIR = path
-            break
+
+    # Check for environment variable first
+    env_cache = os.environ.get("HALLUC_CACHE_DIR")
+    if env_cache and os.path.exists(env_cache):
+        CACHE_DIR = env_cache
+    else:
+        for path in POSSIBLE_CACHE_DIR:
+            if os.path.exists(path):
+                CACHE_DIR = path
+                break
 
     CACHE_DIR = CACHE_DIR or "./"  # default to current directory
-    CACHE_PATH = os.path.join(CACHE_DIR, "halluc")
-    MODEL_PATH = os.path.join(CACHE_PATH, "models")
-    OUTPUT_PATH = os.path.join(CACHE_PATH, "outputs")
-    os.makedirs(CACHE_PATH, exist_ok=True)
+    MODEL_PATH = os.path.join(CACHE_DIR, "models")
+    OUTPUT_PATH = os.path.join(CACHE_DIR, "outputs")
     os.makedirs(MODEL_PATH, exist_ok=True)
     os.makedirs(OUTPUT_PATH, exist_ok=True)
 
 
-if not CACHE_PATH or not os.exists(CACHE_DIR):
+if not CACHE_PATH or not os.path.exists(CACHE_DIR):
     _init_cache_dir()
 
 

@@ -23,6 +23,7 @@ dataset_dir: ./data
 template: qwen3_nothink
 cutoff_len: 2048
 overwrite_cache: true
+load_from_cache_file: false
 preprocessing_num_workers: 8
 dataloader_num_workers: 4
 

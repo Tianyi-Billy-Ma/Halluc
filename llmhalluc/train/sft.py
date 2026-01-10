@@ -3,8 +3,9 @@ from datasets import DatasetDict, load_dataset
 
 from .base import BaseExecutor
 from llmhalluc.hparams import SFTArguments
-from llmhalluc.data import load_data_config, SFTDatasetConverter
+from llmhalluc.data import load_data_config, get_dataset_converter
 from llmhalluc.utils import process_dataset, print_dataset
+from llmhalluc.models.peft import get_peft_config
 
 
 class SFTExecutor(BaseExecutor):
@@ -39,20 +40,17 @@ class SFTExecutor(BaseExecutor):
             split=train_info.get("split", "train"),
         )
 
-        # Get column mapping and create converter
-        column_mapping = train_info.get("columns", {})
-        sft_converter = SFTDatasetConverter(
-            prompt_key=column_mapping.get("prompt", "prompt"),
-            query_key=column_mapping.get("query", "query"),
-            response_key=column_mapping.get("response", "response"),
+        converter, converter_args = get_dataset_converter(
+            self.args.converter or "sft", **train_info.get("columns", {})
         )
 
         # Apply converter using existing utility
         train_dataset = process_dataset(
             dataset=train_dataset,
-            processor=sft_converter,
+            processor=converter,
             split=train_split,
-            load_from_cache_file=False,
+            load_from_cache_file=self.args.load_from_cache_file,
+            **converter_args,
         )
 
         # Build DatasetDict
@@ -79,19 +77,16 @@ class SFTExecutor(BaseExecutor):
                 split=eval_info.get("split", "test"),
             )
 
-            # Get eval column mapping (may differ from train)
-            eval_column_mapping = eval_info.get("columns", {})
-            eval_converter = SFTDatasetConverter(
-                prompt_key=eval_column_mapping.get("prompt", "prompt"),
-                query_key=eval_column_mapping.get("query", "query"),
-                response_key=eval_column_mapping.get("response", "response"),
+            eval_converter, eval_converter_args = get_dataset_converter(
+                self.args.converter or "sft", **eval_info.get("columns", {})
             )
 
             eval_dataset = process_dataset(
                 dataset=eval_dataset,
                 processor=eval_converter,
                 split=eval_split,
-                load_from_cache_file=False,
+                load_from_cache_file=self.args.load_from_cache_file,
+                **eval_converter_args,
             )
             self.dataset["eval"] = eval_dataset
 
@@ -102,12 +97,16 @@ class SFTExecutor(BaseExecutor):
         train_dataset = self.dataset.get("train")
         eval_dataset = self.dataset.get("eval")
 
+        # Build LoRA config if using PEFT
+        peft_config = get_peft_config(self.args)
+
         self.trainer = SFTTrainer(
             model=self.model,
             processing_class=self.tokenizer,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             args=self.args,
+            peft_config=peft_config,
         )
 
 

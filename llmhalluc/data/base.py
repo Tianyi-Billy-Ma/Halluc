@@ -1,9 +1,9 @@
 """Base dataset converter following LLaMA-Factory patterns."""
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
-from collections import defaultdict
 
 
 @dataclass

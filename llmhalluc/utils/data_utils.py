@@ -1,9 +1,9 @@
 """Data processing utilities."""
 
-from pathlib import Path
-from typing import Any, Callable
-from datasets import Dataset, DatasetDict
 import json
+from typing import Any, Callable
+
+from datasets import Dataset, DatasetDict
 
 
 def print_dataset(dataset: Dataset | DatasetDict, n: int = 1) -> None:
@@ -102,6 +102,47 @@ def process_dataset(
             revision="main",  # Force push to main branch
         )
     return dataset_to_return
+
+
+def wrap_converter_with_replace(converter, replace_text, batched):
+    """Wrap converter to apply text replacements before conversion.
+
+    Args:
+        converter: The original converter callable.
+        replace_text: Dictionary of text replacements {target: replacement}.
+        batched: Whether the converter operates in batched mode.
+
+    Returns:
+        Wrapped converter that applies replacements first.
+    """
+    if not replace_text:
+        return converter
+
+    def replace_in_text(text):
+        if not isinstance(text, str):
+            return text
+        for target, replacement in replace_text.items():
+            text = text.replace(target, replacement)
+        return text
+
+    def text_replacer(example):
+        new_example = {}
+        if batched:
+            for key, values in example.items():
+                if isinstance(values, list) and values and isinstance(values[0], str):
+                    new_example[key] = [replace_in_text(v) for v in values]
+                else:
+                    new_example[key] = values
+        else:
+            for key, value in example.items():
+                new_example[key] = replace_in_text(value)
+        return new_example
+
+    def wrapped_converter(example, **kwargs):
+        example = text_replacer(example)
+        return converter(example, **kwargs)
+
+    return wrapped_converter
 
     # # Save processed dataset
     # save_path = Path(data_dir) / dataset_name / f"{split}.json"

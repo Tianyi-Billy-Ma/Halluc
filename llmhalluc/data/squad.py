@@ -3,8 +3,8 @@
 from dataclasses import dataclass
 from typing import Any
 
-from .base import DatasetConverter
 from ..prompts.QAPrompt import QA_INSTRUCTION
+from .base import DatasetConverter
 
 
 @dataclass
@@ -28,5 +28,9 @@ class SquadDatasetConverter(DatasetConverter):
         return {
             "prompt": QA_INSTRUCTION,
             "query": f"Context: {example['context']}\nQuestion: {example['question']}",
-            "response": (example["answers"]["text"][0] if len(example["answers"]["text"]) > 0 else "IDK"),
+            "response": (
+                example["answers"]["text"][0]
+                if len(example["answers"]["text"]) > 0
+                else "IDK"
+            ),
         }

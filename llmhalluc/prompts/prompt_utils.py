@@ -89,7 +89,7 @@ def validate_prompt_structure(prompt_name: str) -> bool:
         True
     """
     try:
-        prompt_content = get_prompt(prompt_name)
+        prompt_content = get_prompt_template(prompt_name)
         return isinstance(prompt_content, str) and len(prompt_content.strip()) > 0
     except Exception as e:
         logger.warning("Prompt validation failed for '%s': %s", prompt_name, e)

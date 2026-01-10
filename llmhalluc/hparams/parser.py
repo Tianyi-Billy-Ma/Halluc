@@ -1,14 +1,16 @@
-from pathlib import Path
 import json
-from omegaconf import OmegaConf
+from pathlib import Path
+
 from easydict import EasyDict
+from omegaconf import OmegaConf
 from transformers import HfArgumentParser
 
-from .patcher import patch_configs, patch_sft_config
-from .train_args import TrainArguments
-from .sft_args import SFTArguments
-from .eval_args import EvaluationArguments
 from llmhalluc.utils.sys_utils import resolve_path
+
+from .eval_args import EvaluationArguments
+from .ft_args import DPOArguments, SFTArguments
+from .patcher import patch_configs, patch_dpo_config, patch_sft_config
+from .train_args import TrainArguments
 
 
 def load_config(path: str) -> dict[str, any]:
@@ -144,6 +146,15 @@ def verify_train_args(args: TrainArguments) -> None:
     if finetuning_type == "qlora" and not load_in_4bit:
         args.load_in_4bit = True
 
+    # 4. Early Stopping Check (requires eval_dataset)
+    early_stopping = getattr(args, "early_stopping", False)
+    eval_dataset = getattr(args, "eval_dataset", None)
+    if early_stopping and not eval_dataset:
+        raise ValueError(
+            "early_stopping requires eval_dataset to be set. "
+            "Please provide an eval_dataset or disable early_stopping."
+        )
+
 
 def e2e_cfg_setup(
     config_path: str,
@@ -171,7 +182,6 @@ def e2e_cfg_setup(
     train_args = arg_dict.train_args
     merge_args = arg_dict.merge_args
     eval_args = arg_dict.eval_args
-    extra_args = arg_dict.extra_args
 
     # Verify arguments
     verify_train_args(train_args)
@@ -193,21 +203,17 @@ def e2e_cfg_setup(
         # Save evaluation command script
         save_eval_cmd(eval_args, eval_args.config_path.parent / "eval.sh")
 
-        if extra_args:
-            save_config(dict(extra_args), train_args.new_special_tokens_config)
-
     output = {
         "TRAIN_CONFIG_PATH": str(train_args.config_path),
         "MERGE_CONFIG_PATH": str(merge_args.config_path),
         "EVAL_CONFIG_PATH": str(eval_args.config_path),
-        "SPECIAL_TOKEN_CONFIG_PATH": str(train_args.new_special_tokens_config or ""),
     }
 
     return EasyDict(paths=output, args=arg_dict)
 
 
-def save_sft_config(args: SFTArguments, path: str | Path) -> None:
-    """Save SFTArguments to a YAML file."""
+def save_ft_config(args: SFTArguments | DPOArguments, path: str | Path) -> None:
+    """Save fine-tuning arguments (SFT or DPO) to a YAML file."""
     cfg_path = resolve_path(path)
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -244,6 +250,7 @@ def hf_cfg_setup(
 
     hf_args = None
     stage = getattr(train_args, "stage", "sft")
+
     if stage == "sft":
         raw_args: dict[str, any] = patch_sft_config(train_args)
         hf_args, *_ = HfArgumentParser(SFTArguments).parse_dict(
@@ -251,9 +258,19 @@ def hf_cfg_setup(
         )
 
         if save_cfg:
-            save_sft_config(hf_args, hf_args.config_path)
+            save_ft_config(hf_args, hf_args.config_path)
+
+    elif stage == "dpo":
+        raw_args: dict[str, any] = patch_dpo_config(train_args)
+        hf_args, *_ = HfArgumentParser(DPOArguments).parse_dict(
+            raw_args, allow_extra_keys=True
+        )
+
+        if save_cfg:
+            save_ft_config(hf_args, hf_args.config_path)
 
     else:
         raise ValueError(f"Unsupported stage: {stage}")
+
     setup_dict.args.hf_args = hf_args
     return setup_dict

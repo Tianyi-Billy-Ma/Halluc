@@ -29,18 +29,17 @@ from pathlib import Path
 
 from transformers import HfArgumentParser
 
-from llmhalluc.utils.type_utils import str2bool
+from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
+from llmhalluc.hparams.eval_args import EvaluationArguments
+from llmhalluc.hparams.merge_args import MergeArguments
+from llmhalluc.hparams.train_args import TrainArguments
 from llmhalluc.utils.log_utils import setup_logging
 from llmhalluc.utils.sys_utils import (
-    load_config,
     apply_overrides,
+    load_config,
     save_config,
 )
-from llmhalluc.hparams.base_args import BaseArguments
-from llmhalluc.hparams.train_args import TrainArguments
-from llmhalluc.hparams.merge_args import MergeArguments
-from llmhalluc.hparams.eval_args import EvaluationArguments
-from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
+from llmhalluc.utils.type_utils import str2bool
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "llmhalluc" / "e2e.yaml"
@@ -98,50 +97,85 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def patch_train_config(
     args: TrainArguments,
-    additional_args: BaseArguments | None = None,
-    plan: dict[str, bool] = {},
-) -> dict[str, any]:
-    """Hook for experiment-specific train config tweaks."""
+    plan: dict[str, bool] | None = None,
+) -> TrainArguments:
+    """Hook for experiment-specific train config tweaks.
 
-    template = args.template
+    Auto-sets special token config based on template when init_special_tokens=True
+    but new_special_tokens_config is not provided.
+
+    Args:
+        args: TrainArguments to patch
+        plan: Optional plan dict (unused, kept for compatibility)
+
+    Returns:
+        Patched TrainArguments
+    """
     if args.init_special_tokens:
-        if "llama3" in template:
-            args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
-            args.force_init_embeddings = True
-            model_name = "llama3"
-            args.backtrack_token = "<|reserved_special_token_0|>"
-        elif "qwen3" in template:
-            args.force_init_embeddings = True
-            args.backtrack_token = "<|BACKTRACK|>"
-            model_name = "qwen3"
-        else:
-            raise ValueError(f"Unsupported template: {template}")
-        save_config(SPECIAL_TOKEN_MAPPING[model_name], args.new_special_tokens_config)
+        template = args.template.lower() if args.template else ""
+
+        # Auto-set new_special_tokens_config if not provided
+        if not args.new_special_tokens_config:
+            if "llama3" in template:
+                args.new_special_tokens_config = SPECIAL_TOKEN_MAPPING["llama3"]
+            elif "qwen3" in template:
+                args.new_special_tokens_config = SPECIAL_TOKEN_MAPPING["qwen3"]
+            else:
+                raise ValueError(
+                    f"init_special_tokens=True but template '{args.template}' not supported. "
+                    "Please provide new_special_tokens_config manually or use llama3/qwen3 template."
+                )
+
+        # Auto-set replace_text if not provided (for dataset preprocessing)
+        # LLaMA3 uses reserved token, so we need to map <|BACKTRACK|> to it
+        if not args.replace_text:
+            if "llama3" in template:
+                args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
+            # qwen3 can use <|BACKTRACK|> directly, no replace needed
+
     return args
 
 
 def patch_merge_config(
-    args: TrainArguments,
-    additional_args: BaseArguments | None = None,
-    plan: dict[str, bool] = {},
-) -> dict[str, any]:
-    """Hook for experiment-specific merge config tweaks."""
-    if additional_args.init_special_tokens:
-        args.new_special_tokens_config = additional_args.new_special_tokens_config
-        args.init_special_tokens = additional_args.init_special_tokens
-        args.force_init_embeddings = additional_args.force_init_embeddings
-        args.backtrack_token = additional_args.backtrack_token
+    args: MergeArguments,
+    additional_args: TrainArguments | None = None,
+    plan: dict[str, bool] | None = None,
+) -> MergeArguments:
+    """Hook for experiment-specific merge config tweaks.
 
-    args.adapter_name_or_path = additional_args.output_dir
+    Args:
+        args: MergeArguments to patch
+        additional_args: TrainArguments for referencing training config
+        plan: Optional plan dict (unused, kept for compatibility)
+
+    Returns:
+        Patched MergeArguments
+    """
+    if additional_args:
+        if additional_args.init_special_tokens:
+            args.init_special_tokens = additional_args.init_special_tokens
+            args.new_special_tokens_config = additional_args.new_special_tokens_config
+            args.replace_text = additional_args.replace_text
+
+        args.adapter_name_or_path = additional_args.output_dir
     return args
 
 
 def patch_eval_config(
     args: EvaluationArguments,
-    additional_args: BaseArguments | None = None,
-    plan: dict[str, bool] = {},
-) -> dict[str, any]:
-    """Hook for experiment-specific eval config tweaks."""
+    additional_args: TrainArguments | None = None,
+    plan: dict[str, bool] | None = None,
+) -> EvaluationArguments:
+    """Hook for experiment-specific eval config tweaks.
+
+    Args:
+        args: EvaluationArguments to patch
+        additional_args: TrainArguments for referencing training config
+        plan: Optional plan dict (unused, kept for compatibility)
+
+    Returns:
+        Patched EvaluationArguments
+    """
     return args
 
 
@@ -157,11 +191,11 @@ def format_shell(env_map: dict[str, any]) -> str:
     return "\n".join(lines)
 
 
-def build_configs(config: dict[str, any], plan: dict[str, bool]) -> dict[str, any]:
+def build_configs(config: dict[str, any], plan: dict[str, bool]) -> tuple:
     train_args, *_ = HfArgumentParser([TrainArguments]).parse_dict(
         config, allow_extra_keys=True
     )
-    train_args = patch_train_config(args=train_args, additional_args=None, plan=plan)
+    train_args = patch_train_config(args=train_args, plan=plan)
     merge_args, *_ = HfArgumentParser((MergeArguments,)).parse_dict(
         config,
         allow_extra_keys=True,
@@ -173,7 +207,9 @@ def build_configs(config: dict[str, any], plan: dict[str, bool]) -> dict[str, an
     )
     eval_args, *_ = HfArgumentParser((EvaluationArguments,)).parse_dict(
         {
-            "model_path": merge_args.export_dir if train_args.finetuning_type in ["lora"] else train_args.output_dir,
+            "model_path": merge_args.export_dir
+            if train_args.finetuning_type in ["lora"]
+            else train_args.output_dir,
             "run_name": train_args.run_name,
             "exp_path": train_args.exp_path,
             **config,
@@ -220,7 +256,6 @@ def e2e_setup(argv: list[str] | None = None) -> int:
         "TRAIN_CONFIG_PATH": str(train_args.config_path),
         "MERGE_CONFIG_PATH": str(merge_args.config_path),
         "EVAL_CONFIG_PATH": str(eval_args.config_path),
-        "SPECIAL_TOKEN_CONFIG_PATH": str(train_args.new_special_tokens_config or ""),
     }
 
     if args.format == "json":

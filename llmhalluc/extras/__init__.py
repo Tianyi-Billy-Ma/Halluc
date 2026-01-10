@@ -1,6 +1,6 @@
 import os
 
-from .constant import POSSIBLE_CACHE_DIR, CACHE_DIR, CACHE_PATH, MODEL_PATH, OUTPUT_PATH
+from .constant import CACHE_DIR, CACHE_PATH, MODEL_PATH, OUTPUT_PATH, POSSIBLE_CACHE_DIR
 
 
 def _init_cache_dir():
@@ -17,9 +17,7 @@ def _init_cache_dir():
                 break
 
     CACHE_DIR = CACHE_DIR or "./"  # default to current directory
-    MODEL_PATH = os.path.join(CACHE_DIR, "models")
     OUTPUT_PATH = os.path.join(CACHE_DIR, "outputs")
-    os.makedirs(MODEL_PATH, exist_ok=True)
     os.makedirs(OUTPUT_PATH, exist_ok=True)
 
 

@@ -1,9 +1,11 @@
-import torch
 from dataclasses import dataclass, field
-from typing import Optional
 from pathlib import Path
-from llmhalluc.hparams.base_args import BaseArguments
+from typing import Optional
+
+import torch
+
 from llmhalluc.extras import OUTPUT_PATH
+from llmhalluc.hparams.base_args import BaseArguments
 
 
 @dataclass(kw_only=True)
@@ -88,14 +90,14 @@ class TrainArguments(BaseArguments):
     eval_steps: int | None = 500
     compute_accuracy: bool = True
 
-    ### Special Tokens
-    init_special_tokens: str | None = "desc_init"
-    force_init_embeddings: bool = False
-    backtrack_token: str | None = None
+    # Early Stopping
+    early_stopping: bool = False
+    early_stopping_patience: int = 3
+    early_stopping_threshold: float = 0.001
 
     # Special Token Initialization
-    init_special_tokens: str = ""
-    new_special_tokens_config: str = ""
+    init_special_tokens: bool = False
+    new_special_tokens_config: dict[str, str] | None = None
     replace_text: dict[str, str] | None = None
 
     # Derived fields
@@ -128,10 +130,9 @@ class TrainArguments(BaseArguments):
         elif self.stage.lower() == "dpo":
             excludes.remove("pref_loss")
             excludes.remove("pref_beta")
-        elif not self.init_special_tokens:
+        if not self.init_special_tokens:
             excludes.add("init_special_tokens")
-            excludes.add("force_init_embeddings")
-            excludes.add("backtrack_token")
+            excludes.add("new_special_tokens_config")
             excludes.add("replace_text")
         if self.finetuning_type not in ["lora", "qlora"]:
             excludes.add("lora_rank")
@@ -161,11 +162,6 @@ class TrainArguments(BaseArguments):
 
         self.run_name = f"{model_name}_{run_name}_{stage}"
         self.config_path = self.exp_path / "train_config.yaml"
-
-        if self.init_special_tokens:
-            self.new_special_tokens_config = str(
-                self.exp_path / "special_token_config.yaml"
-            )
 
         if self.eval_dataset:
             self.do_eval = True

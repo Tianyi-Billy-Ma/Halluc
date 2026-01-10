@@ -4,18 +4,18 @@ import argparse
 import sys
 from pathlib import Path
 
-from transformers import AutoTokenizer
 from datasets import load_dataset
+from transformers import AutoTokenizer
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from llmhalluc.data.backtrack import (
+from llmhalluc.data import get_dataset_converter  # noqa: E402
+from llmhalluc.data.backtrack import (  # noqa: E402
     BACKTRACK_TOKEN,
 )
-from llmhalluc.data import get_dataset_converter
-from llmhalluc.utils.data_utils import process_dataset
+from llmhalluc.utils.data_utils import process_dataset  # noqa: E402
 
 
 def main(arg_list: list[str] = None) -> None:

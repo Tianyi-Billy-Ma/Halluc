@@ -1,60 +1,93 @@
+"""Config patching utilities for training arguments."""
+
 from pathlib import Path
-from transformers import HfArgumentParser
+
 from easydict import EasyDict
+from transformers import HfArgumentParser
 
 from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
 
 from .base_args import BaseArguments
-from .train_args import TrainArguments
 from .eval_args import EvaluationArguments
 from .merge_args import MergeArguments
-from .sft_args import SFTArguments
+from .train_args import TrainArguments
 
 
-def patch_train_config(
-    args: TrainArguments,
-    additional_args: BaseArguments | None = None,
-) -> dict[str, any]:
-    """Hook for experiment-specific train config tweaks."""
+def patch_train_config(args: TrainArguments) -> TrainArguments:
+    """Hook for experiment-specific train config tweaks.
 
-    template = args.template
-    additional_args = None
+    Auto-sets special token config based on template when init_special_tokens=True
+    but new_special_tokens_config is not provided.
+
+    Args:
+        args: TrainArguments to patch
+
+    Returns:
+        Patched TrainArguments (same object, modified in place)
+    """
     if args.init_special_tokens:
-        if "llama3" in template:
-            args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
-            args.force_init_embeddings = True
-            model_name = "llama3"
-            args.backtrack_token = "<|reserved_special_token_0|>"
-        elif "qwen3" in template:
-            args.force_init_embeddings = True
-            args.backtrack_token = "<|BACKTRACK|>"
-            model_name = "qwen3"
-        else:
-            raise ValueError(f"Unsupported template: {template}")
-        additional_args = SPECIAL_TOKEN_MAPPING[model_name]
-    return args, additional_args
+        template = args.template.lower() if args.template else ""
+
+        # Auto-set new_special_tokens_config if not provided
+        if not args.new_special_tokens_config:
+            if "llama3" in template:
+                args.new_special_tokens_config = SPECIAL_TOKEN_MAPPING["llama3"]
+            elif "qwen3" in template:
+                args.new_special_tokens_config = SPECIAL_TOKEN_MAPPING["qwen3"]
+            else:
+                raise ValueError(
+                    f"init_special_tokens=True but template '{args.template}' not supported. "
+                    "Please provide new_special_tokens_config manually or use llama3/qwen3 template."
+                )
+
+        # Auto-set replace_text if not provided (for dataset preprocessing)
+        # LLaMA3 uses reserved token, so we need to map <|BACKTRACK|> to it
+        if not args.replace_text:
+            if "llama3" in template:
+                args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
+            # qwen3 can use <|BACKTRACK|> directly, no replace needed
+
+    return args
 
 
 def patch_merge_config(
     args: MergeArguments,
-    additional_args: BaseArguments | None = None,
-) -> dict[str, any]:
-    """Hook for experiment-specific merge config tweaks."""
-    if additional_args.init_special_tokens:
-        args.new_special_tokens_config = additional_args.new_special_tokens_config
-        args.init_special_tokens = additional_args.init_special_tokens
-        args.force_init_embeddings = additional_args.force_init_embeddings
-        args.backtrack_token = additional_args.backtrack_token
+    additional_args: TrainArguments | None = None,
+) -> MergeArguments:
+    """Hook for experiment-specific merge config tweaks.
 
-    args.adapter_name_or_path = additional_args.output_dir
+    Args:
+        args: MergeArguments to patch
+        additional_args: TrainArguments for referencing training config
+
+    Returns:
+        Patched MergeArguments
+    """
+    if additional_args:
+        # Copy special token config if enabled
+        if additional_args.init_special_tokens:
+            args.init_special_tokens = additional_args.init_special_tokens
+            args.new_special_tokens_config = additional_args.new_special_tokens_config
+            args.replace_text = additional_args.replace_text
+
+        args.adapter_name_or_path = additional_args.output_dir
+
     return args
 
 
 def patch_eval_config(
     args: EvaluationArguments,
-    additional_args: BaseArguments | None = None,
-) -> dict[str, any]:
-    """Hook for experiment-specific eval config tweaks."""
+    additional_args: TrainArguments | None = None,
+) -> EvaluationArguments:
+    """Hook for experiment-specific eval config tweaks.
+
+    Args:
+        args: EvaluationArguments to patch
+        additional_args: TrainArguments for referencing training config
+
+    Returns:
+        Patched EvaluationArguments
+    """
     if additional_args:
         finetuning_type = getattr(additional_args, "finetuning_type", "full")
 
@@ -99,11 +132,42 @@ def patch_sft_config(args) -> dict[str, any]:
     return arg_dict
 
 
-def patch_configs(config: dict[str, any]) -> dict[str, any]:
+def patch_dpo_config(args) -> dict[str, any]:
+    """Patch DPO config for HuggingFace training.
+
+    Args:
+        args: TrainArguments or BaseArguments instance
+
+    Returns:
+        Dictionary with resolved config values
+    """
+    if isinstance(args, BaseArguments):
+        arg_dict = args.to_yaml(exclude=False)
+    else:
+        arg_dict = dict(args)
+
+    # Resolve tokenizer path (default to model path if not specified)
+    if not arg_dict.get("tokenizer_name_or_path"):
+        arg_dict["tokenizer_name_or_path"] = arg_dict.get("model_name_or_path")
+
+    if arg_dict.get("config_path"):
+        arg_dict["config_path"] = arg_dict.get("config_path").parent / "dpo_config.yaml"
+    return arg_dict
+
+
+def patch_configs(config: dict[str, any]) -> EasyDict:
+    """Parse and patch all config types from a single config dict.
+
+    Args:
+        config: Raw config dictionary
+
+    Returns:
+        EasyDict with train_args, merge_args, eval_args
+    """
     train_args, *_ = HfArgumentParser([TrainArguments]).parse_dict(
         config, allow_extra_keys=True
     )
-    train_args, extra_args = patch_train_config(args=train_args, additional_args=None)
+    train_args = patch_train_config(args=train_args)
 
     merge_args, *_ = HfArgumentParser((MergeArguments,)).parse_dict(
         config,
@@ -134,5 +198,4 @@ def patch_configs(config: dict[str, any]) -> dict[str, any]:
         train_args=train_args,
         merge_args=merge_args,
         eval_args=eval_args,
-        extra_args=extra_args,
     )

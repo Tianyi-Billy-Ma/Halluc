@@ -21,8 +21,7 @@ Description:
 """
 
 import argparse
-import sys
-from pathlib import Path
+
 from datasets import load_dataset
 
 from llmhalluc.data import get_dataset_converter

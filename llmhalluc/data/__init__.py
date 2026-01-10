@@ -1,9 +1,10 @@
 """Dataset converters for llmhalluc."""
 
 from .base import DatasetConverter
-from .utils import load_data_config
-from .manager import get_dataset, get_dataset_converter, DATASET_CONVERTERS
+from .dpo import DPODatasetConverter
+from .manager import DATASET_CONVERTERS, get_dataset, get_dataset_converter
 from .sft import SFTDatasetConverter
+from .utils import load_data_config
 
 # Registry of available converters
 
@@ -15,4 +16,5 @@ __all__ = [
     "get_dataset",
     "load_data_config",
     "SFTDatasetConverter",
+    "DPODatasetConverter",
 ]

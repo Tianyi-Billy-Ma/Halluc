@@ -1,11 +1,12 @@
 import logging
+
 from lm_eval import simple_evaluate
-from lm_eval.tasks import TaskManager
 from lm_eval.loggers import EvaluationTracker
-from llmhalluc.utils import load_config
+from lm_eval.tasks import TaskManager
 
 # Import metrics to register them before evaluation
 import llmhalluc.eval.metrics  # noqa: F401
+from llmhalluc.utils import load_config
 
 logger = logging.getLogger(__name__)
 

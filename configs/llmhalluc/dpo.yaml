@@ -10,7 +10,7 @@ model_name_or_path: meta-llama/Llama-3.1-8B
 
 template: llama3
 # template: llama3_bt
-stage: sft
+stage: dpo
 finetuning_type: lora
 fp16: false
 bf16: true
@@ -21,18 +21,17 @@ report_to: wandb
 # Dataset
 # dataset: gsm8k_train
 # eval_dataset: gsm8k_eval
-dataset: gsm8k_bt_sft_train
-eval_dataset: gsm8k_bt_sft_eval
-converter: "gsm8k_sft"
+dataset: gsm8k_bt_dpo_train
+eval_dataset: gsm8k_bt_dpo_eval
+converter: "dpo"
 
 # Evaluation
 model: hf
 # tasks: gsm8k_comprehensive
 tasks: gsm8k_simple
-eval_mode: cli
 
 # WandB
-wandb_project: llamafactory
+wandb_project: huggingface 
 
 # Constants
 seed: 3

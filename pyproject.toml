@@ -1,0 +1,60 @@
+[project]
+name = "llmhalluc"
+version = "0.1.0"
+description = "LLM Hallucination Research with Backtracking Mechanisms"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Tianyi Ma"}
+]
+
+dependencies = [
+    # Core ML Libraries (torch installed separately via install_torch.sh)
+    "transformers>=4.45.0",
+    "accelerate>=1.0.0",
+    "peft>=0.12.0",
+    "trl>=0.9.0",
+    "datasets>=2.20.0",
+    "bitsandbytes>=0.43.0",
+    "deepspeed>=0.14.0",
+    
+    # Data & Utilities
+    "wandb>=0.17.0",
+    "numpy>=1.26.0,<2.0.0",
+    "pandas>=2.0.0",
+    "scipy>=1.11.0",
+    "scikit-learn>=1.4.0",
+    "sentencepiece>=0.2.0",
+    "protobuf>=4.25.0",
+    "omegaconf>=2.3.0",
+    "easydict>=1.10",
+    "matplotlib>=3.8.0",
+]
+
+[project.optional-dependencies]
+flash = [
+    "flash-attn>=2.5.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
+
+[project.urls]
+Repository = "https://github.com/Tianyi-Billy-Ma/Halluc"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["llmhalluc*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from llmhalluc.hparams.base_args import BaseArguments
+
 from llmhalluc.extras.constant import MODEL_PATH, OUTPUT_PATH
+from llmhalluc.hparams.base_args import BaseArguments
 
 
 @dataclass(kw_only=True)
@@ -20,9 +21,9 @@ class MergeArguments(BaseArguments):
     export_legacy_format: bool = False
 
     ### Special Tokens
-    new_special_tokens_config: str = ""
-    init_special_tokens: str = ""
-    force_init_embeddings: bool = False
+    init_special_tokens: bool = False
+    new_special_tokens_config: dict[str, str] | None = None
+    replace_text: dict[str, str] | None = None
 
     stage: str
     run_name: str
@@ -32,7 +33,13 @@ class MergeArguments(BaseArguments):
 
     @property
     def yaml_exclude(self):
-        return {"stage", "run_name", "exp_path", "config_path", "model_name"}
+        excludes = {"stage", "run_name", "exp_path", "config_path", "model_name"}
+        # Exclude special token fields if not enabled
+        if not self.init_special_tokens:
+            excludes.add("init_special_tokens")
+            excludes.add("new_special_tokens_config")
+            excludes.add("replace_text")
+        return excludes
 
     def __post_init__(self):
         self.model_name = Path(self.model_name_or_path).name.lower()

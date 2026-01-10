@@ -1,5 +1,3 @@
-import os
-
 BACKTRACK_TOKEN = "<|BACKTRACK|>"
 HF_USER_ID = "mtybilly"
 

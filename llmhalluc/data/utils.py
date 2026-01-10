@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 DEFAULT_DATASET_CONFIG_PATH = (
     Path(__file__).resolve().parents[2] / "data" / "dataset_info.json"

@@ -17,7 +17,7 @@ Examples:
         stage=sft \
         finetuning_type=lora
 
-    # Update merge.yaml with merge parameters  
+    # Update merge.yaml with merge parameters
     python update_yaml.py configs/llamafactory/merge.yaml configs/llamafactory/merge_updated.yaml \
         model_name_or_path=Qwen/Qwen3-4B-Instruct-2507 \
         adapter_name_or_path=./outputs/test \

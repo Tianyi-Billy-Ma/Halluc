@@ -1,15 +1,16 @@
 """Backtrack dataset converter."""
 
+import logging
 from dataclasses import dataclass
 from typing import Any
+
 import numpy as np
-import logging
 from transformers import PreTrainedTokenizer
-from .backtrack import BACKTRACK_TOKEN
-from .base import DatasetConverter
+
 from ..prompts.MathPrompt import MATH_INSTRUCTION
 from ..utils.alg_utils import cs_alg
-
+from .backtrack import BACKTRACK_TOKEN
+from .base import DatasetConverter
 
 logger = logging.getLogger(__name__)
 
@@ -409,50 +410,3 @@ class GSM8KBacktrackDatasetConverter(GSM8KSymbolicDatasetConverter):
             data_attr.backtrack_prefix = backtrack_prefix
             results.append(data_attr.to_dict())
         return self.list_to_batch(results)
-
-
-@dataclass
-class GSM8KSFTConverter(DatasetConverter):
-    """Converter that transforms {prompt, query, response} to TRL messages format.
-
-    This converter takes the standard format produced by other converters
-    and converts it to the chat messages format expected by TRL's SFTTrainer.
-
-    Args:
-        prompt_key: Key for the system prompt in input examples.
-        query_key: Key for the user query in input examples.
-        response_key: Key for the assistant response in input examples.
-    """
-
-    prompt_key: str | None = "prompt"
-    query_key: str | None = "query"
-    response_key: str | None = "response"
-
-    prompt: str | None = None
-    query: str | None = None
-    response: str | None = None
-
-    def __post_init__(self):
-        self.prompt_key = self.prompt or self.prompt_key
-        self.query_key = self.query or self.query_key
-        self.response_key = self.response or self.response_key
-
-    def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
-        """Convert an example to TRL messages format.
-
-        Args:
-            example: Input example with prompt, query, and response fields.
-
-        Returns:
-            Example with 'messages' field containing list of role/content dicts.
-        """
-        # prompt_content = example.get(self.prompt_key, "")
-        prompt_content = "Let's think step by step. Put your final answer at the end with 'The answer is: .'"
-        query_content = example.get(self.query_key, "")
-        response_content = example.get(self.response_key, "")
-        return {
-            "prompt": [
-                {"role": "user", "content": query_content + "\n" + prompt_content}
-            ],
-            "completion": [{"role": "assistant", "content": response_content}],
-        }

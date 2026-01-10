@@ -5,8 +5,9 @@ Usage:
 """
 
 from pathlib import Path
-from llmhalluc.utils import setup_logging, e2e_cfg_setup
+
 from llmhalluc.eval import run_eval
+from llmhalluc.utils import e2e_cfg_setup, setup_logging
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "llmhalluc" / "e2e.yaml"

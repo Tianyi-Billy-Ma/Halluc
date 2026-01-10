@@ -1,5 +1,0 @@
-model_name_or_path: meta-llama/Llama-3.2-1B
-# adapter_name_or_path: /users/tma2/Projects/Halluc/outputs/llama-3.2-1b_gsm8k_sft/gsm8k/dpo/train
-template: llama3
-infer_backend: huggingface
-trust_remote_code: true

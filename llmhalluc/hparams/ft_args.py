@@ -13,6 +13,8 @@ from .base_args import BaseArguments
 class FTArguments(BaseArguments):
     """Common arguments for fine-tuning tasks."""
 
+    config_path: str = field(default=None, metadata={"help": "Path to the config file"})
+
     model_name_or_path: str = field(
         default=None, metadata={"help": "Path to pretrained model or model identifier"}
     )

@@ -18,6 +18,9 @@ class FTArguments(BaseArguments):
     model_name_or_path: str = field(
         default=None, metadata={"help": "Path to pretrained model or model identifier"}
     )
+    tokenizer_name_or_path: str = field(
+        default=None, metadata={"help": "Path to tokenizer or tokenizer identifier"}
+    )
     dataset: str = field(
         default=None, metadata={"help": "The name of the dataset to use"}
     )

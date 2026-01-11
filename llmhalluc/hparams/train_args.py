@@ -64,7 +64,7 @@ class TrainArguments(BaseArguments):
     ### train
     stage: str
     finetuning_type: str
-    per_device_train_batch_size: int = 4
+    per_device_train_batch_size: int = 16
     gradient_accumulation_steps: int = 8
     learning_rate: float = 1.0e-4
     num_train_epochs: float = 3
@@ -85,7 +85,7 @@ class TrainArguments(BaseArguments):
 
     ### eval
     eval_dataset: str | None = None
-    per_device_eval_batch_size: int | None = 12
+    per_device_eval_batch_size: int | None = 32
     eval_strategy: str | None = "steps"
     eval_steps: int | None = 500
     compute_accuracy: bool = True

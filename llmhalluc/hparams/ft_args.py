@@ -1,6 +1,5 @@
-"""Fine-tuning arguments for SFT, DPO, and GRPO training."""
-
 from dataclasses import dataclass, field
+
 
 from trl import DPOConfig as BaseDPOConfig
 from trl import GRPOConfig as BaseGRPOConfig
@@ -119,6 +118,9 @@ class GRPOArguments(FTArguments, BaseGRPOConfig):
     )
     tokenize_labels: bool = field(
         default=True, metadata={"help": "Whether to tokenize labels"}
+    )
+    reward_func_args: dict[str, str | int | float | bool] | None = field(
+        default=None, metadata={"help": "Arguments to pass to reward functions"}
     )
 
     # vLLM

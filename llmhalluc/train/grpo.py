@@ -46,7 +46,9 @@ class GRPOExecutor(BaseExecutor):
 
         logger.info(f"Loading reward functions: {reward_func_names}")
 
-        reward_funcs = get_reward_functions(reward_func_names)
+        reward_args = self.args.reward_func_args or {}
+
+        reward_funcs = get_reward_functions(reward_func_names, **reward_args)
 
         # Log reward weights if specified
         reward_weights = self.args.get_reward_weights_list()

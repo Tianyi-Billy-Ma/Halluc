@@ -1,7 +1,6 @@
 """Reward function registry and manager for GRPO training."""
 
-from typing import Any
-
+import inspect
 from .base import BaseRewardFunction
 
 # Registry of available reward functions
@@ -34,7 +33,7 @@ def register_reward(name: str):
     return decorator
 
 
-def get_reward_function(name: str, **kwargs: Any) -> BaseRewardFunction:
+def get_reward_function(name: str, **kwargs: any) -> BaseRewardFunction:
     """Get a reward function instance by name.
 
     Args:
@@ -53,12 +52,29 @@ def get_reward_function(name: str, **kwargs: Any) -> BaseRewardFunction:
             f"Reward function '{name}' not found. "
             f"Available reward functions: {available}"
         )
-    return REWARD_FUNCTIONS[name](**kwargs)
+
+    reward_cls = REWARD_FUNCTIONS[name]
+
+    # Inspect constructor signature to pass only relevant arguments
+    sig = inspect.signature(reward_cls.__init__)
+    params = sig.parameters
+
+    # Check if constructor accepts **kwargs
+    accepts_kwargs = any(
+        p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()
+    )
+
+    if accepts_kwargs:
+        return reward_cls(**kwargs)
+
+    # Filter kwargs to match constructor arguments
+    valid_kwargs = {k: v for k, v in kwargs.items() if k in params}
+    return reward_cls(**valid_kwargs)
 
 
 def get_reward_functions(
     names: str | list[str],
-    **kwargs: Any,
+    **kwargs: any,
 ) -> list[BaseRewardFunction]:
     """Get multiple reward function instances from comma-separated names.
 

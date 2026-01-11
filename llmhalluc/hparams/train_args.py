@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+
 
 import torch
 
@@ -73,7 +73,7 @@ class TrainArguments(BaseArguments):
     fp16: bool = True
     bf16: bool = False
     ddp_timeout: int = 180000000
-    resume_from_checkpoint: Optional[str] = None
+    resume_from_checkpoint: str | None = None
     save_total_limit: int = 1
     load_best_model_at_end: bool = True
     metric_for_best_model: str = "loss"
@@ -99,6 +99,9 @@ class TrainArguments(BaseArguments):
     init_special_tokens: bool = False
     new_special_tokens_config: dict[str, str] | None = None
     replace_text: dict[str, str] | None = None
+
+    # Reward Function Arguments
+    reward_func_args: dict[str, str | int | float | bool] | None = None
 
     # Derived fields
     model_name: str = field(init=False)

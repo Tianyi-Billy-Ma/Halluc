@@ -23,6 +23,15 @@ class SFTDatasetConverter(DatasetConverter):
     query_key: str = "query"
     response_key: str = "response"
 
+    prompt: str | None = None
+    query: str | None = None
+    response: str | None = None
+
+    def __post_init__(self):
+        self.prompt_key = self.prompt or self.prompt_key
+        self.query_key = self.query or self.query_key
+        self.response_key = self.response or self.response_key
+
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         """Convert an example to TRL messages format.
 

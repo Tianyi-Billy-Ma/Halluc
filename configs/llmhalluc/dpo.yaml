@@ -31,7 +31,7 @@ model: hf
 tasks: gsm8k_simple
 
 # WandB
-wandb_project: huggingface 
+wandb_project: Halluc 
 
 # Constants
 seed: 3
@@ -40,7 +40,7 @@ ddp: 1
 
 deepspeed: configs/deepspeed/ds_z0_config.json
 
-init_special_tokens: desc_init
+init_special_tokens: true
 
 # SFT
 compute_only_loss: false

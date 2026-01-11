@@ -19,7 +19,10 @@ class EvaluationArguments(BaseArguments):
     confirm_run_unsafe_code: bool = True
     include_path: str = "./configs/lm_eval/tasks"
 
+    # Logging
+    wandb_project: str | None = None
     report_to: str = "none"
+    disable_wandb: bool = True
 
     enable_thinking: bool = False
     stage: str
@@ -71,6 +74,7 @@ class EvaluationArguments(BaseArguments):
 
     def _update_wandb_args(self):
         if self.report_to == "wandb":
+            self.disable_wandb = False
             self.wandb_args = f"name={self.run_name}"
             if self.wandb_project:
                 self.wandb_args += f",project={self.wandb_project}"

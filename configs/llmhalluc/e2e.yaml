@@ -32,7 +32,7 @@ tasks: gsm8k_simple
 eval_mode: cli
 
 # WandB
-wandb_project: llamafactory
+wandb_project: Halluc
 
 # Constants
 seed: 3
@@ -41,7 +41,7 @@ ddp: 1
 
 deepspeed: configs/deepspeed/ds_z0_config.json
 
-init_special_tokens: desc_init
+init_special_tokens: false
 
 # SFT
 compute_only_loss: false

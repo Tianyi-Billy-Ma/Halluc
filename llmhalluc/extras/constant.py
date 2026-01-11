@@ -13,8 +13,8 @@ SPECIAL_TOKEN_MAPPING = {
 
 
 POSSIBLE_CACHE_DIR = [
-    "/scratch365/tma2/.cache/",
-    "/work/nvme/bemy/tma3/.cache/",
+    "/scratch365/tma2/.cache/halluc/",
+    "/work/nvme/bemy/tma3/.cache/halluc/",
 ]
 
 CACHE_DIR = None

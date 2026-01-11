@@ -19,16 +19,17 @@ class EvaluationArguments(BaseArguments):
     confirm_run_unsafe_code: bool = True
     include_path: str = "./configs/lm_eval/tasks"
 
-    wandb_project: str = "llamafactory"
-    disable_wandb: bool = True
+    report_to: str = "none"
 
     enable_thinking: bool = False
     stage: str
     run_name: str
-    model_path: Path
-    model_name: str = field(init=False)
     exp_path: Path = field()
     config_path: Path = field(init=False)
+
+    model_name_or_path: str = ""
+    tokenizer_name_or_path: str = ""
+    adapter_name_or_path: str = ""
 
     @property
     def yaml_exclude(self):
@@ -37,33 +38,39 @@ class EvaluationArguments(BaseArguments):
             "enable_thinking",
             "stage",
             "run_name",
-            "model_path",
-            "model_name",
             "exp_path",
             "config_path",
-            "disable_wandb",
+            "model_name_or_path",
+            "tokenizer_name_or_path",
+            "adapter_name_or_path",
+            "report_to",
         }
-        if self.disable_wandb:
+        if self.report_to != "wandb":
             excludes.add("wandb_args")
         return excludes
 
     def __post_init__(self):
-        self.model_path = Path(self.model_path)
-        self.model_name = self.model_path.name.lower()
-
-        self.run_name = f"{self.model_name}_{self.run_name}_{self.stage}"
-
         if isinstance(self.tasks, list):
             task_str = "_".join(self.tasks)
         else:
             task_str = self.tasks
         self.output_path = str(self.exp_path / "eval" / task_str / "results.json")
 
-        self.model_args = f"pretrained={str(self.model_path)}"
+        self._update_model_args()
+        self._update_wandb_args()
+        self.config_path = self.exp_path / "eval_config.yaml"
+
+    def _update_model_args(self):
+        self.model_args = f"pretrained={self.model_name_or_path}"
+        if self.adapter_name_or_path:
+            self.model_args += f",peft={self.adapter_name_or_path}"
+        if self.tokenizer_name_or_path:
+            self.model_args += f",tokenizer={self.tokenizer_name_or_path}"
         if self.enable_thinking:
             self.model_args += f",enable_thinking={self.enable_thinking}"
-        if not self.disable_wandb:
-            self.wandb_args = f"project={self.wandb_project},name={self.run_name}"
-        else:
-            self.wandb_args = None
-        self.config_path = self.exp_path / "eval_config.yaml"
+
+    def _update_wandb_args(self):
+        if self.report_to == "wandb":
+            self.wandb_args = f"name={self.run_name}"
+            if self.wandb_project:
+                self.wandb_args += f",project={self.wandb_project}"

@@ -40,7 +40,7 @@ class TrainArguments(BaseArguments):
     bnb_4bit_use_double_quant: bool = True
 
     # wandb
-    wandb_project: str = "llamafactory"
+    wandb_project: str = ""
     report_to: str = "none"
 
     ### dataset

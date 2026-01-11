@@ -24,6 +24,9 @@ class FTArguments(BaseArguments):
     dataset: str = field(
         default=None, metadata={"help": "The name of the dataset to use"}
     )
+    eval_dataset: str | None = field(
+        default=None, metadata={"help": "The name of the eval dataset to use"}
+    )
     dataset_dir: str = field(
         default="./data", metadata={"help": "Path to the dataset directory"}
     )

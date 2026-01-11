@@ -27,6 +27,10 @@ class FTArguments(BaseArguments):
     dataset_dir: str = field(
         default="./data", metadata={"help": "Path to the dataset directory"}
     )
+
+    load_from_cache_file: bool = field(
+        default=False, metadata={"help": "Whether to load from cache file"}
+    )
     template: str = field(default="default", metadata={"help": "Chat template to use"})
     trust_remote_code: bool = field(
         default=True,

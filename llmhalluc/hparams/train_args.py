@@ -101,8 +101,26 @@ class TrainArguments(BaseArguments):
     replace_text: dict[str, str] | None = None
 
     # Reward Function Arguments
-    reward_func_args: dict[str, str | int | float | bool] | None = None
+    reward_func_args: dict[str, str | int | float | bool] = field(
+        default_factory=lambda: {
+            "outcome_weight": 1.0,
+            "process_weight": 0.7,
+            "backtrack_weight": 0.6,
+            "format_weight": 0.3,
+            "correction_bonus": 0.4,
+            "unnecessary_penalty": 0.2,
+            "efficiency_weight": 0.25,
+            "failed_correction_penalty": 0.3,
+            "use_curriculum": False,
+            "enable_process_rewards": False,
+            "enable_format_rewards": True,
+            "max_backtracks": 20,
+            "backtrack_token_id": None,
+        },
+        metadata={"help": "Arguments to pass to reward functions"},
+    )
 
+    backtrack_token: str = "<|BACKTRACK|>"
     # Derived fields
     model_name: str = field(init=False)
     exp_path: Path = field(init=False)

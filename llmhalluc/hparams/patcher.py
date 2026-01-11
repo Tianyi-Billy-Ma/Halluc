@@ -45,6 +45,7 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
         if not args.replace_text:
             if "llama3" in template:
                 args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
+                args.backtrack_token = "<|reserved_special_token_0|>"
             # qwen3 can use <|BACKTRACK|> directly, no replace needed
 
     return args
@@ -176,6 +177,7 @@ def patch_grpo_config(args) -> dict[str, any]:
     if arg_dict.get("config_path"):
         config_path = Path(arg_dict["config_path"])
         arg_dict["config_path"] = str(config_path.parent / "grpo_config.yaml")
+
     return arg_dict
 
 

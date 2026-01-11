@@ -70,6 +70,10 @@ class FTArguments(BaseArguments):
         default=0.001, metadata={"help": "Early stopping threshold"}
     )
 
+    backtrack_token: str = field(
+        default="<|BACKTRACK|>", metadata={"help": "Backtrack token"}
+    )
+
 
 @dataclass
 class SFTArguments(FTArguments, BaseSFTConfig):
@@ -119,8 +123,22 @@ class GRPOArguments(FTArguments, BaseGRPOConfig):
     tokenize_labels: bool = field(
         default=True, metadata={"help": "Whether to tokenize labels"}
     )
-    reward_func_args: dict[str, str | int | float | bool] | None = field(
-        default=None, metadata={"help": "Arguments to pass to reward functions"}
+    reward_func_args: dict[str, str | int | float | bool] = field(
+        default_factory=lambda: {
+            "outcome_weight": 1.0,
+            "process_weight": 0.7,
+            "backtrack_weight": 0.6,
+            "format_weight": 0.3,
+            "correction_bonus": 0.4,
+            "unnecessary_penalty": 0.2,
+            "efficiency_weight": 0.25,
+            "failed_correction_penalty": 0.3,
+            "use_curriculum": False,
+            "enable_process_rewards": False,
+            "enable_format_rewards": True,
+            "max_backtracks": 20,
+        },
+        metadata={"help": "Arguments to pass to reward functions"},
     )
 
     # vLLM

@@ -46,7 +46,27 @@ class GRPOExecutor(BaseExecutor):
 
         logger.info(f"Loading reward functions: {reward_func_names}")
 
-        reward_args = self.args.reward_func_args or {}
+        reward_args = (self.args.reward_func_args or {}).copy()
+
+        # Auto-inject backtrack_token_id if not present
+        if (
+            "backtrack_token_id" not in reward_args
+            or reward_args["backtrack_token_id"] is None
+        ):
+            # Try to resolve backtrack_token token
+            backtrack_token = self.args.backtrack_token
+            token_id = self.tokenizer.convert_tokens_to_ids(backtrack_token)
+
+            # Verify if token exists (convert_tokens_to_ids returns int, check against unk if strictly needed,
+            # but usually unique special tokens are added explicitly)
+            if token_id != self.tokenizer.unk_token_id:
+                reward_args["backtrack_token_id"] = token_id
+                logger.info(f"Auto-detected backtrack_token_id={token_id}")
+            else:
+                logger.warning(
+                    f"Token '{backtrack_token}' not found in tokenizer. "
+                    "Reward functions relying on it may fail if backtrack_token_id is not set."
+                )
 
         reward_funcs = get_reward_functions(reward_func_names, **reward_args)
 

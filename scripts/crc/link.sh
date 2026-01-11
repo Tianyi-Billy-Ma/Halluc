@@ -1,0 +1,1 @@
+ln -s /scratch365/tma2/.cache/halluc/outputs  outputs

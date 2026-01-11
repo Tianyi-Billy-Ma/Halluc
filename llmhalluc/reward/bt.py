@@ -157,9 +157,9 @@ class BacktrackRewardFunction(BaseRewardFunction):
         self,
         prompts: list[str] | list[list[dict[str, str]]],
         completions: list[str] | list[list[dict[str, str]]],
-        completions_ids: list[list[int]] | None = None,
-        ground_truth_ids: list[list[int]] | None = None,
-        trainer_state: TrainerState | None = None,
+        completions_ids: list[list[int]],
+        ground_truth_ids: list[list[int]],
+        trainer_state: TrainerState,
         **kwargs: Any,
     ) -> list[float]:
         """Compute multi-component rewards for completions.

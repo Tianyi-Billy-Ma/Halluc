@@ -29,14 +29,9 @@ class GRPOExecutor(BaseExecutor):
     """
 
     def __init__(self, args: GRPOArguments):
-        self.reward_functions = None
         super().__init__(args)
 
-    def __post_init__(self):
-        """Setup reward functions after base initialization."""
-        self._setup_reward_functions()
-
-    def _setup_reward_functions(self):
+    def _get_reward_functions(self):
         """Initialize reward functions from the registry.
 
         Parses the reward_funcs argument (comma-separated names) and
@@ -51,15 +46,15 @@ class GRPOExecutor(BaseExecutor):
 
         logger.info(f"Loading reward functions: {reward_func_names}")
 
-        self.reward_functions = get_reward_functions(reward_func_names)
+        reward_funcs = get_reward_functions(reward_func_names)
 
         # Log reward weights if specified
         reward_weights = self.args.get_reward_weights_list()
         if reward_weights:
-            if len(reward_weights) != len(self.reward_functions):
+            if len(reward_weights) != len(reward_funcs):
                 raise ValueError(
                     f"Number of reward_weights ({len(reward_weights)}) must match "
-                    f"number of reward_funcs ({len(self.reward_functions)})"
+                    f"number of reward_funcs ({len(reward_funcs)})"
                 )
             logger.info(f"Reward weights: {reward_weights}")
 
@@ -71,18 +66,11 @@ class GRPOExecutor(BaseExecutor):
             )
         else:
             logger.info("vLLM disabled, using model.generate() for completions")
+        return reward_funcs
 
     def _get_trainer_class(self):
         """Return GRPOTrainer class for GRPO training."""
         return GRPOTrainer
-
-    def _get_callable_reward_funcs(self) -> list[Callable]:
-        """Get list of callable reward functions for GRPOTrainer.
-
-        Returns:
-            List of callables that match GRPOTrainer's reward_funcs interface.
-        """
-        return [rf.__call__ for rf in self.reward_functions]
 
     def _get_dataset(self, dataset_key: str, split_type: str = "train"):
         """Load and process dataset with tokenizer for GRPO.
@@ -152,7 +140,7 @@ class GRPOExecutor(BaseExecutor):
         peft_config = self._get_peft_config()
 
         # Get callable reward functions
-        reward_funcs = self._get_callable_reward_funcs()
+        reward_funcs = self._get_reward_functions()
 
         # Build callbacks
         callbacks = get_callbacks(self.args)

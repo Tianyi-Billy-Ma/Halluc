@@ -8,8 +8,13 @@ from transformers import HfArgumentParser
 from llmhalluc.utils.sys_utils import resolve_path
 
 from .eval_args import EvaluationArguments
-from .ft_args import DPOArguments, SFTArguments
-from .patcher import patch_configs, patch_dpo_config, patch_sft_config
+from .ft_args import DPOArguments, GRPOArguments, SFTArguments
+from .patcher import (
+    patch_configs,
+    patch_dpo_config,
+    patch_grpo_config,
+    patch_sft_config,
+)
 from .train_args import TrainArguments
 
 
@@ -245,6 +250,12 @@ def hf_cfg_setup(
     Returns:
         EasyDict with paths and parsed argument objects including hf_args
     """
+    # Store original config to preserve stage-specific fields
+    original_config = load_config(config_path)
+    if cli_args:
+        overrides = parse_cli_to_dotlist(cli_args)
+        original_config = apply_overrides(original_config, overrides)
+
     setup_dict = e2e_cfg_setup(config_path, save_cfg=save_cfg, cli_args=cli_args)
     train_args = setup_dict.args.train_args
 
@@ -253,6 +264,8 @@ def hf_cfg_setup(
 
     if stage == "sft":
         raw_args: dict[str, any] = patch_sft_config(train_args)
+        # Merge original config to preserve SFT-specific fields
+        raw_args = {**original_config, **raw_args}
         hf_args, *_ = HfArgumentParser(SFTArguments).parse_dict(
             raw_args, allow_extra_keys=True
         )
@@ -262,7 +275,20 @@ def hf_cfg_setup(
 
     elif stage == "dpo":
         raw_args: dict[str, any] = patch_dpo_config(train_args)
+        # Merge original config to preserve DPO-specific fields
+        raw_args = {**original_config, **raw_args}
         hf_args, *_ = HfArgumentParser(DPOArguments).parse_dict(
+            raw_args, allow_extra_keys=True
+        )
+
+        if save_cfg:
+            save_ft_config(hf_args, hf_args.config_path)
+
+    elif stage == "grpo":
+        raw_args: dict[str, any] = patch_grpo_config(train_args)
+        # Merge original config to preserve GRPO-specific fields like num_generations
+        raw_args = {**original_config, **raw_args}
+        hf_args, *_ = HfArgumentParser(GRPOArguments).parse_dict(
             raw_args, allow_extra_keys=True
         )
 

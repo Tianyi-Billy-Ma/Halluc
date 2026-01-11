@@ -1,237 +1,159 @@
-"""Fine-tuning arguments for SFT and DPO training."""
+"""Fine-tuning arguments for SFT, DPO, and GRPO training."""
 
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from trl import DPOConfig as BaseDPOConfig
+from trl import GRPOConfig as BaseGRPOConfig
 from trl import SFTConfig as BaseSFTConfig
 
 from .base_args import BaseArguments
 
 
 @dataclass
-class SFTArguments(BaseArguments, BaseSFTConfig):
+class FTArguments(BaseArguments):
+    """Common arguments for fine-tuning tasks."""
+
+    model_name_or_path: str = field(
+        default=None, metadata={"help": "Path to pretrained model or model identifier"}
+    )
+    dataset: str = field(
+        default=None, metadata={"help": "The name of the dataset to use"}
+    )
+    dataset_dir: str = field(
+        default="./data", metadata={"help": "Path to the dataset directory"}
+    )
+    template: str = field(default="default", metadata={"help": "Chat template to use"})
+    trust_remote_code: bool = field(
+        default=True,
+        metadata={"help": "Whether to trust remote code when loading model"},
+    )
+
+    # LoRA / QLoRA
+    lora_rank: int = field(default=8, metadata={"help": "LoRA rank"})
+    lora_alpha: int = field(default=16, metadata={"help": "LoRA alpha"})
+    lora_dropout: float = field(default=0.05, metadata={"help": "LoRA dropout"})
+    lora_target: str = field(default="all", metadata={"help": "LoRA target modules"})
+    load_in_4bit: bool = field(
+        default=False, metadata={"help": "Whether to load model in 4-bit"}
+    )
+
+    # Special Tokens
+    init_special_tokens: bool = field(
+        default=False, metadata={"help": "Whether to initialize special tokens"}
+    )
+    new_special_tokens_config: dict[str, str] | None = field(
+        default=None, metadata={"help": "New special tokens configuration"}
+    )
+    replace_text: dict[str, str] | None = field(
+        default=None, metadata={"help": "Text replacement mapping"}
+    )
+
+    # Early Stopping
+    early_stopping: bool = field(
+        default=False, metadata={"help": "Whether to use early stopping"}
+    )
+    early_stopping_patience: int = field(
+        default=3, metadata={"help": "Early stopping patience"}
+    )
+    early_stopping_threshold: float = field(
+        default=0.001, metadata={"help": "Early stopping threshold"}
+    )
+
+
+@dataclass
+class SFTArguments(FTArguments, BaseSFTConfig):
     """Arguments for Supervised Fine-Tuning (SFT)."""
 
     run_name: str = field(default="sft")
-    tags: list[str] = field(default_factory=list)
-    model_name_or_path: str = field(
-        default=None, metadata={"help": "The model name or path to use for training"}
-    )
-
-    tokenizer_name_or_path: str = field(
-        default=None,
-        metadata={"help": "The tokenizer name or path to use for training"},
-    )
-
-    # Train dataset key (looks up hf_hub_url from dataset_info.json)
-    dataset: str | None = field(
-        default=None,
-        metadata={"help": "The train dataset key in dataset_info.json"},
-    )
-
-    # Eval dataset key (looks up hf_hub_url from dataset_info.json)
-    eval_dataset: str | None = field(
-        default=None,
-        metadata={"help": "The eval dataset key in dataset_info.json"},
-    )
-
-    config_path: str | Path = field(
-        default=None,
-        metadata={"help": "The path to save the config"},
-    )
-
-    load_from_cache_file: bool = field(
-        default=True,
-        metadata={"help": "Whether to load dataset from cache file"},
-    )
-
     converter: str = field(
         default="sft",
         metadata={"help": "The converter to use for dataset conversion"},
     )
 
-    finetuning_type: str = field(
-        default="full",
-        metadata={"help": "The fine-tuning method to use: full, lora, or qlora"},
-    )
-
-    ### Lora
-    lora_rank: int = 8
-    lora_alpha: int = 16
-    lora_dropout: float = 0.05
-    lora_target: str = "all"
-
-    # QLoRA (4-bit quantization)
-    load_in_4bit: bool = False
-    bnb_4bit_compute_dtype: str = "bfloat16"
-    bnb_4bit_quant_type: str = "nf4"
-    bnb_4bit_use_double_quant: bool = True
-
-    # Early Stopping
-    early_stopping: bool = field(
-        default=False,
-        metadata={"help": "Enable early stopping when eval metric stops improving"},
-    )
-    early_stopping_patience: int = field(
-        default=3,
-        metadata={"help": "Number of eval steps with no improvement before stopping"},
-    )
-    early_stopping_threshold: float = field(
-        default=0.0,
-        metadata={"help": "Minimum change to qualify as an improvement"},
-    )
-
-    # Special Token Initialization
-    init_special_tokens: bool = field(
-        default=False,
-        metadata={"help": "Whether to initialize special tokens"},
-    )
-    new_special_tokens_config: dict[str, str] | None = field(
-        default=None,
-        metadata={
-            "help": "Dict mapping special tokens to descriptions for embedding init"
-        },
-    )
-    replace_text: dict[str, str] | None = field(
-        default=None,
-        metadata={"help": "Dict mapping default tokens to target tokens in dataset"},
-    )
-    template: str | None = field(
-        default=None,
-        metadata={"help": "Model template name for SPECIAL_TOKEN_MAPPING fallback"},
-    )
-
-    @property
-    def yaml_exclude(self):
-        """Fields to exclude from YAML serialization."""
-        excludes = set()
-        if not self.init_special_tokens:
-            excludes.add("init_special_tokens")
-            excludes.add("new_special_tokens_config")
-            excludes.add("replace_text")
-        return excludes
-
     def __post_init__(self):
-        super().__post_init__()
-        if self.model_name_or_path is None:
-            raise ValueError("model_name_or_path is required")
-        if self.dataset is None:
-            raise ValueError("dataset is required")
+        BaseSFTConfig.__post_init__(self)
 
 
 @dataclass
-class DPOArguments(BaseArguments, BaseDPOConfig):
-    """Arguments for Direct Preference Optimization (DPO).
-
-    Inherits DPO-specific parameters from TRL's DPOConfig including:
-    - beta: Temperature parameter for DPO loss (default: 0.1)
-    - loss_type: Type of DPO loss ("sigmoid", "hinge", "ipo", etc.)
-    - label_smoothing: Label smoothing factor (default: 0.0)
-    """
+class DPOArguments(FTArguments, BaseDPOConfig):
+    """Arguments for Direct Preference Optimization (DPO)."""
 
     run_name: str = field(default="dpo")
-    tags: list[str] = field(default_factory=list)
-    model_name_or_path: str = field(
-        default=None, metadata={"help": "The model name or path to use for training"}
-    )
-
-    tokenizer_name_or_path: str = field(
-        default=None,
-        metadata={"help": "The tokenizer name or path to use for training"},
-    )
-
-    # Train dataset key (looks up hf_hub_url from dataset_info.json)
-    dataset: str | None = field(
-        default=None,
-        metadata={"help": "The train dataset key in dataset_info.json"},
-    )
-
-    # Eval dataset key (looks up hf_hub_url from dataset_info.json)
-    eval_dataset: str | None = field(
-        default=None,
-        metadata={"help": "The eval dataset key in dataset_info.json"},
-    )
-
-    config_path: str | Path = field(
-        default=None,
-        metadata={"help": "The path to save the config"},
-    )
-
-    load_from_cache_file: bool = field(
-        default=True,
-        metadata={"help": "Whether to load dataset from cache file"},
-    )
-
     converter: str = field(
         default="dpo",
         metadata={"help": "The converter to use for dataset conversion"},
     )
 
-    finetuning_type: str = field(
-        default="full",
-        metadata={"help": "The fine-tuning method to use: full, lora, or qlora"},
+    def __post_init__(self):
+        BaseDPOConfig.__post_init__(self)
+
+
+@dataclass
+class GRPOArguments(FTArguments, BaseGRPOConfig):
+    """Arguments for Group Relative Policy Optimization (GRPO)."""
+
+    run_name: str = field(default="grpo")
+    converter: str = field(
+        default="grpo",
+        metadata={"help": "The converter to use for dataset conversion"},
     )
 
-    ### Lora
-    lora_rank: int = 8
-    lora_alpha: int = 16
-    lora_dropout: float = 0.05
-    lora_target: str = "all"
-
-    # QLoRA (4-bit quantization)
-    load_in_4bit: bool = False
-    bnb_4bit_compute_dtype: str = "bfloat16"
-    bnb_4bit_quant_type: str = "nf4"
-    bnb_4bit_use_double_quant: bool = True
-
-    # Early Stopping
-    early_stopping: bool = field(
-        default=False,
-        metadata={"help": "Enable early stopping when eval metric stops improving"},
+    # GRPO Specific
+    reward_funcs: str = field(
+        default="", metadata={"help": "Comma-separated list of reward functions"}
     )
-    early_stopping_patience: int = field(
-        default=3,
-        metadata={"help": "Number of eval steps with no improvement before stopping"},
+    reward_weights_str: str | None = field(
+        default=None, metadata={"help": "Comma-separated list of reward weights"}
     )
-    early_stopping_threshold: float = field(
-        default=0.0,
-        metadata={"help": "Minimum change to qualify as an improvement"},
+    tokenize_labels: bool = field(
+        default=True, metadata={"help": "Whether to tokenize labels"}
     )
 
-    # Special Token Initialization
-    init_special_tokens: bool = field(
-        default=False,
-        metadata={"help": "Whether to initialize special tokens"},
+    # vLLM
+    use_vllm: bool = field(
+        default=True, metadata={"help": "Whether to use vLLM for generation"}
     )
-    new_special_tokens_config: dict[str, str] | None = field(
-        default=None,
-        metadata={
-            "help": "Dict mapping special tokens to descriptions for embedding init"
-        },
+    vllm_mode: str = field(
+        default="colocate", metadata={"help": "vLLM mode: colocate or remote"}
     )
-    replace_text: dict[str, str] | None = field(
-        default=None,
-        metadata={"help": "Dict mapping default tokens to target tokens in dataset"},
+    vllm_gpu_memory_utilization: float = field(
+        default=0.3, metadata={"help": "vLLM GPU memory utilization"}
     )
-    template: str | None = field(
-        default=None,
-        metadata={"help": "Model template name for SPECIAL_TOKEN_MAPPING fallback"},
+    vllm_max_model_length: int | None = field(
+        default=None, metadata={"help": "vLLM max model length"}
     )
-
-    @property
-    def yaml_exclude(self):
-        """Fields to exclude from YAML serialization."""
-        excludes = set()
-        if not self.init_special_tokens:
-            excludes.add("init_special_tokens")
-            excludes.add("new_special_tokens_config")
-            excludes.add("replace_text")
-        return excludes
+    vllm_tensor_parallel_size: int = field(
+        default=1, metadata={"help": "vLLM tensor parallel size"}
+    )
+    vllm_enable_sleep_mode: bool = field(
+        default=False, metadata={"help": "vLLM enable sleep mode"}
+    )
+    vllm_server_host: str = field(
+        default="0.0.0.0", metadata={"help": "vLLM server host"}
+    )
+    vllm_server_port: int = field(default=8000, metadata={"help": "vLLM server port"})
+    vllm_server_timeout: float = field(
+        default=240.0, metadata={"help": "vLLM server timeout"}
+    )
 
     def __post_init__(self):
-        super().__post_init__()
-        if self.model_name_or_path is None:
-            raise ValueError("model_name_or_path is required")
-        if self.dataset is None:
-            raise ValueError("dataset is required")
+        BaseGRPOConfig.__post_init__(self)
+        if not self.reward_funcs:
+            raise ValueError(
+                "reward_funcs is required for GRPO training. "
+                "Provide comma-separated reward function names."
+            )
+
+    def get_reward_funcs_list(self) -> list[str]:
+        """Parse reward_funcs string into list of names."""
+        if not self.reward_funcs:
+            return []
+        return [n.strip() for n in self.reward_funcs.split(",") if n.strip()]
+
+    def get_reward_weights_list(self) -> list[float] | None:
+        """Parse reward_weights_str string into list of floats."""
+        if not self.reward_weights_str:
+            return None
+        return [
+            float(w.strip()) for w in self.reward_weights_str.split(",") if w.strip()
+        ]

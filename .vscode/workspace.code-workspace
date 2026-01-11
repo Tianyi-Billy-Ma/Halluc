@@ -4,10 +4,10 @@
 			"path": ".."
 		},
 		{
-			"path": "../../ReVISE"
+			"path": "../../DrugBench"
 		},
 		{
-			"path": "../../Self-Backtracking"
+			"path": "../../LLaGA"
 		}
 	],
 	"settings": {}

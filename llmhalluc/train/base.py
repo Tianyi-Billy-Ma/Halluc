@@ -12,7 +12,7 @@ from transformers import (
 )
 
 from llmhalluc.data import DatasetConverter, get_dataset_converter, load_data_config
-from llmhalluc.hparams import DPOArguments, SFTArguments
+from llmhalluc.hparams import DPOArguments, GRPOArguments, SFTArguments
 from llmhalluc.models import get_model, get_tokenizer
 from llmhalluc.utils import print_dataset, process_dataset, wrap_converter_with_replace
 
@@ -30,6 +30,10 @@ def run_train(args):
         from .dpo import run_dpo
 
         run_dpo(args)
+    elif isinstance(args, GRPOArguments):
+        from .grpo import run_grpo
+
+        run_grpo(args)
     else:
         raise ValueError(f"Unknown support argument type: {type(args)}")
     logger.info("Training completed successfully")
@@ -173,36 +177,39 @@ class BaseExecutor(ABC):
             **model_kwargs,
         )
 
-    def setup_dataset(self):
-        """Load and prepare dataset from dataset_info.json.
+    def _get_dataset(self, dataset_key: str, split_type: str = "train") -> Dataset:
+        """Load and process a single dataset.
 
-        Loads train and eval datasets separately from their configured
-        HuggingFace Hub URLs in dataset_info.json and applies the appropriate converter.
+        Args:
+            dataset_key: Key to look up in dataset_info.json
+            split_type: Either "train" or "eval" for default split selection
+
+        Returns:
+            Processed dataset ready for training/evaluation
         """
         data_config = load_data_config()
 
-        # Load and process train dataset
-        train_info = data_config.get(self.args.dataset)
-        if train_info is None:
+        dataset_info = data_config.get(dataset_key)
+        if dataset_info is None:
+            raise ValueError(f"Dataset '{dataset_key}' not found in dataset_info.json")
+
+        hf_url = dataset_info.get("hf_hub_url")
+        if not hf_url:
             raise ValueError(
-                f"Dataset '{self.args.dataset}' not found in dataset_info.json"
+                f"Dataset '{dataset_key}' does not have 'hf_hub_url' in dataset_info.json"
             )
 
-        train_hf_url = train_info.get("hf_hub_url")
-        if not train_hf_url:
-            raise ValueError(
-                f"Dataset '{self.args.dataset}' does not have 'hf_hub_url' in dataset_info.json"
-            )
+        default_split = "train" if split_type == "train" else "test"
+        split = dataset_info.get("split", default_split)
 
-        train_split = train_info.get("split", "train")
-        train_dataset = load_dataset(
-            train_hf_url,
-            name=train_info.get("subset"),
-            split=train_info.get("split", "train"),
+        dataset = load_dataset(
+            hf_url,
+            name=dataset_info.get("subset"),
+            split=split,
         )
 
         converter, converter_args = get_dataset_converter(
-            self.args.converter, **train_info.get("columns", {})
+            self.args.converter, **dataset_info.get("columns", {})
         )
 
         if getattr(self.args, "replace_text", None):
@@ -212,57 +219,29 @@ class BaseExecutor(ABC):
                 converter_args.get("batched", False),
             )
 
-        # Apply converter using existing utility
-        train_dataset = process_dataset(
-            dataset=train_dataset,
+        dataset = process_dataset(
+            dataset=dataset,
             processor=converter,
-            split=train_split,
+            split=split,
             load_from_cache_file=self.args.load_from_cache_file,
             **converter_args,
         )
 
-        # Build DatasetDict
+        return dataset
+
+    def setup_dataset(self):
+        """Load and prepare dataset from dataset_info.json.
+
+        Loads train and eval datasets separately from their configured
+        HuggingFace Hub URLs in dataset_info.json and applies the appropriate converter.
+        """
+        # Load train dataset
+        train_dataset = self._get_dataset(self.args.dataset, split_type="train")
         self.dataset = DatasetDict({"train": train_dataset})
 
-        # Load and process eval dataset if specified
+        # Load eval dataset if specified
         if self.args.eval_dataset:
-            eval_info = data_config.get(self.args.eval_dataset)
-            if eval_info is None:
-                raise ValueError(
-                    f"Eval dataset '{self.args.eval_dataset}' not found in dataset_info.json"
-                )
-
-            eval_hf_url = eval_info.get("hf_hub_url")
-            if not eval_hf_url:
-                raise ValueError(
-                    f"Eval dataset '{self.args.eval_dataset}' does not have 'hf_hub_url' in dataset_info.json"
-                )
-
-            eval_split = eval_info.get("split", "test")
-            eval_dataset = load_dataset(
-                eval_hf_url,
-                name=eval_info.get("subset"),
-                split=eval_info.get("split", "test"),
-            )
-
-            eval_converter, eval_converter_args = get_dataset_converter(
-                self.args.converter, **eval_info.get("columns", {})
-            )
-
-            if getattr(self.args, "replace_text", None):
-                eval_converter = wrap_converter_with_replace(
-                    eval_converter,
-                    self.args.replace_text,
-                    eval_converter_args.get("batched", False),
-                )
-
-            eval_dataset = process_dataset(
-                dataset=eval_dataset,
-                processor=eval_converter,
-                split=eval_split,
-                load_from_cache_file=self.args.load_from_cache_file,
-                **eval_converter_args,
-            )
+            eval_dataset = self._get_dataset(self.args.eval_dataset, split_type="eval")
             self.dataset["eval"] = eval_dataset
 
         print_dataset(self.dataset)

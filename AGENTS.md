@@ -6,9 +6,6 @@ This project focuses on **new autoregression generation** in large language mode
 
 ## Train Pipeline 
 
-### Llama-Factory for Training LLMs 
-We use [Llama-Factory](https://github.com/hiyouga/LLaMA-Factory) for training LLMs.
-
 ### Train with Transformers
 Alternatively, we directly use Hugging Face Transformers for training.
 
@@ -41,8 +38,7 @@ When you edit the code, you should update the recent changes section to reflect 
 
 ### Conda Environment
 
-We use conda to manage the environment. The environment name is `llamafactory` for training and `lm_eval` for evaluation.
-For llmhalluc, we use `llmhalluc` environment.
+We use conda to manage the environment, specifically, we use `llmhalluc` in conda environment.
 
 If you find the conda is not activated, you can use the following command:
 ```bash
@@ -50,13 +46,3 @@ source ~/.activate_conda
 ```
 to activate the conda environment.
 
-## Recent Changes 
-
-1. 2025-12-06: Added `docs/transformers_upgrade.md` to capture the plan for moving LLaMA-Factory onto newer Hugging Face `transformers` and aligned tooling.
-2. 2025-12-05: Removed the `LLaMA-Factory` and `lm-evaluation-harness` submodules so the Halluc repository no longer vendors them via gitlinks.
-3. 2025-11-22: Ensured `llmhalluc/scripts/process_backtrack_dataset.py` prepends the repo root to `sys.path` so it can be run directly without installation.
-4. 2025-11-07: Synced `LLaMA-Factory/` to upstream commit a711bce, reapplied local dataset/security tweaks, and resolved conflicts in custom collator/loader formatters.
-
-## Current Tasks
-
-N/A

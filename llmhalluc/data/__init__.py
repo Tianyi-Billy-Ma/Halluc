@@ -2,6 +2,7 @@
 
 from .base import DatasetConverter
 from .dpo import DPODatasetConverter
+from .grpo import GRPODatasetConverter
 from .manager import DATASET_CONVERTERS, get_dataset, get_dataset_converter
 from .sft import SFTDatasetConverter
 from .utils import load_data_config
@@ -17,4 +18,5 @@ __all__ = [
     "load_data_config",
     "SFTDatasetConverter",
     "DPODatasetConverter",
+    "GRPODatasetConverter",
 ]

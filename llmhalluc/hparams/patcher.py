@@ -1,100 +1,233 @@
-"""Model and tokenizer patching utilities."""
+"""Config patching utilities for training arguments."""
 
-import logging
+from pathlib import Path
 
-from transformers import PreTrainedModel, PreTrainedTokenizer
+from easydict import EasyDict
+from transformers import HfArgumentParser
 
-from llmhalluc.extras.template import DEFAULT_CHAT_TEMPLATE
+from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
 
-from .embedding import resize_embedding_layer
-
-logger = logging.getLogger(__name__)
-
-
-def _get_special_tokens_config(args) -> dict[str, str] | None:
-    """Get special tokens config from args.
-
-    Args:
-        args: Arguments object with init_special_tokens and new_special_tokens_config
-
-    Returns:
-        Dict mapping special tokens to descriptions, or None if disabled
-
-    Raises:
-        ValueError: If init_special_tokens is True but new_special_tokens_config is not provided
-    """
-    if args is None:
-        return None
-
-    init_special_tokens = getattr(args, "init_special_tokens", False)
-    if not init_special_tokens:
-        return None
-
-    config = getattr(args, "new_special_tokens_config", None)
-    if not config:
-        raise ValueError(
-            "init_special_tokens is True but new_special_tokens_config is not provided. "
-            "Please provide new_special_tokens_config in your config file."
-        )
-
-    return config
+from .base_args import BaseArguments
+from .eval_args import EvaluationArguments
+from .merge_args import MergeArguments
+from .train_args import TrainArguments
 
 
-def patch_tokenizer(tokenizer: PreTrainedTokenizer, args=None) -> PreTrainedTokenizer:
-    """Patch tokenizer with chat template, pad token, and special tokens.
+def patch_train_config(args: TrainArguments) -> TrainArguments:
+    """Hook for experiment-specific train config tweaks.
+
+    Auto-sets special token config based on template when init_special_tokens=True
+    but new_special_tokens_config is not provided.
 
     Args:
-        tokenizer: The tokenizer to patch
-        args: Optional arguments object with special token configuration
+        args: TrainArguments to patch
 
     Returns:
-        Patched tokenizer
+        Patched TrainArguments (same object, modified in place)
     """
-    # Set default chat template if not present
-    tokenizer.chat_template = tokenizer.chat_template or DEFAULT_CHAT_TEMPLATE
+    if args.init_special_tokens:
+        template = args.template.lower() if args.template else ""
 
-    # Set pad token if not present
-    tokenizer.pad_token = tokenizer.pad_token or tokenizer.eos_token
+        # Auto-set new_special_tokens_config if not provided
+        if not args.new_special_tokens_config:
+            if "llama3" in template:
+                args.new_special_tokens_config = SPECIAL_TOKEN_MAPPING["llama3"]
+            elif "qwen3" in template:
+                args.new_special_tokens_config = SPECIAL_TOKEN_MAPPING["qwen3"]
+            else:
+                raise ValueError(
+                    f"init_special_tokens=True but template '{args.template}' not supported. "
+                    "Please provide new_special_tokens_config manually or use llama3/qwen3 template."
+                )
 
-    # Add special tokens if configured
-    special_tokens_config = _get_special_tokens_config(args)
-    if special_tokens_config:
-        special_tokens = list(special_tokens_config.keys())
-        num_added = tokenizer.add_special_tokens(
-            {"additional_special_tokens": special_tokens},
-            replace_additional_special_tokens=False,
-        )
-        if num_added > 0:
-            logger.info(f"Added {num_added} special tokens: {special_tokens}")
+        # Auto-set replace_text if not provided (for dataset preprocessing)
+        # LLaMA3 uses reserved token, so we need to map <|BACKTRACK|> to it
+        if not args.replace_text:
+            if "llama3" in template:
+                args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
+            # qwen3 can use <|BACKTRACK|> directly, no replace needed
 
-    return tokenizer
+    return args
 
 
-def patch_model(
-    model: PreTrainedModel,
-    tokenizer: PreTrainedTokenizer | None = None,
-    args=None,
-) -> PreTrainedModel:
-    """Patch model with resized embeddings for special tokens.
+def patch_merge_config(
+    args: MergeArguments,
+    additional_args: TrainArguments | None = None,
+) -> MergeArguments:
+    """Hook for experiment-specific merge config tweaks.
 
     Args:
-        model: The model to patch
-        tokenizer: The tokenizer (needed for embedding resize)
-        args: Optional arguments object with special token configuration
+        args: MergeArguments to patch
+        additional_args: TrainArguments for referencing training config
 
     Returns:
-        Patched model
+        Patched MergeArguments
     """
-    if tokenizer is None:
-        return model
+    if additional_args:
+        # Copy special token config if enabled
+        if additional_args.init_special_tokens:
+            args.init_special_tokens = additional_args.init_special_tokens
+            args.new_special_tokens_config = additional_args.new_special_tokens_config
+            args.replace_text = additional_args.replace_text
 
-    # Resize embeddings and initialize special tokens if configured
-    special_tokens_config = _get_special_tokens_config(args)
-    if special_tokens_config:
-        resize_embedding_layer(
-            model=model,
-            tokenizer=tokenizer,
-            new_special_tokens_config=special_tokens_config,
-        )
+        args.adapter_name_or_path = additional_args.output_dir
 
-    return model
+    return args
+
+
+def patch_eval_config(
+    args: EvaluationArguments,
+    additional_args: TrainArguments | None = None,
+) -> EvaluationArguments:
+    """Hook for experiment-specific eval config tweaks.
+
+    Args:
+        args: EvaluationArguments to patch
+        additional_args: TrainArguments for referencing training config
+
+    Returns:
+        Patched EvaluationArguments
+    """
+    if additional_args:
+        init_special_tokens = getattr(additional_args, "init_special_tokens", False)
+
+        if init_special_tokens:
+            # Here, we use the trained model's tokenizer
+            args.tokenizer_name_or_path = additional_args.output_dir
+            args._update_model_args()
+
+    return args
+
+
+def patch_sft_config(args) -> dict[str, any]:
+    """Patch SFT config for HuggingFace training.
+
+    Args:
+        args: TrainArguments or BaseArguments instance
+
+    Returns:
+        Dictionary with resolved config values
+    """
+    if isinstance(args, BaseArguments):
+        arg_dict = args.to_yaml(exclude=False)
+    else:
+        arg_dict = dict(args)
+
+    # Resolve tokenizer path (default to model path if not specified)
+    if not arg_dict.get("tokenizer_name_or_path"):
+        arg_dict["tokenizer_name_or_path"] = arg_dict.get("model_name_or_path")
+
+    # Handle config_path (may be Path or str from to_yaml() serialization)
+    if arg_dict.get("config_path"):
+        config_path = Path(arg_dict["config_path"])
+        arg_dict["config_path"] = str(config_path.parent / "sft_config.yaml")
+    return arg_dict
+
+
+def patch_dpo_config(args) -> dict[str, any]:
+    """Patch DPO config for HuggingFace training.
+
+    Args:
+        args: TrainArguments or BaseArguments instance
+
+    Returns:
+        Dictionary with resolved config values
+    """
+    if isinstance(args, BaseArguments):
+        arg_dict = args.to_yaml(exclude=False)
+    else:
+        arg_dict = dict(args)
+
+    # Resolve tokenizer path (default to model path if not specified)
+    if not arg_dict.get("tokenizer_name_or_path"):
+        arg_dict["tokenizer_name_or_path"] = arg_dict.get("model_name_or_path")
+
+    # Handle config_path (may be Path or str from to_yaml() serialization)
+    if arg_dict.get("config_path"):
+        config_path = Path(arg_dict["config_path"])
+        arg_dict["config_path"] = str(config_path.parent / "dpo_config.yaml")
+
+    if arg_dict.get("pref_loss"):
+        arg_dict["loss_type"] = arg_dict.get("pref_loss")
+    if arg_dict.get("pref_beta"):
+        arg_dict["beta"] = arg_dict.get("pref_beta")
+    return arg_dict
+
+
+def patch_grpo_config(args) -> dict[str, any]:
+    """Patch GRPO config for HuggingFace training.
+
+    Args:
+        args: TrainArguments or BaseArguments instance
+
+    Returns:
+        Dictionary with resolved config values
+    """
+    if isinstance(args, BaseArguments):
+        arg_dict = args.to_yaml(exclude=False)
+    else:
+        arg_dict = dict(args)
+
+    # Resolve tokenizer path (default to model path if not specified)
+    if not arg_dict.get("tokenizer_name_or_path"):
+        arg_dict["tokenizer_name_or_path"] = arg_dict.get("model_name_or_path")
+
+    # Handle config_path (may be Path or str from to_yaml() serialization)
+    if arg_dict.get("config_path"):
+        config_path = Path(arg_dict["config_path"])
+        arg_dict["config_path"] = str(config_path.parent / "grpo_config.yaml")
+    return arg_dict
+
+
+def patch_configs(config: dict[str, any]) -> EasyDict:
+    """Parse and patch all config types from a single config dict.
+
+    Args:
+        config: Raw config dictionary
+
+    Returns:
+        EasyDict with train_args, merge_args, eval_args
+    """
+    train_args, *_ = HfArgumentParser([TrainArguments]).parse_dict(
+        config, allow_extra_keys=True
+    )
+    train_args = patch_train_config(args=train_args)
+
+    merge_args, *_ = HfArgumentParser((MergeArguments,)).parse_dict(
+        config,
+        allow_extra_keys=True,
+    )
+    merge_args = patch_merge_config(
+        args=merge_args,
+        additional_args=train_args,
+    )
+
+    eval_dict = {
+        "exp_path": train_args.exp_path,
+        "run_name": train_args.run_name,
+        **config,
+    }
+    if train_args.finetuning_type in ["lora", "qlora"]:
+        eval_dict["model_name_or_path"] = train_args.model_name_or_path
+        eval_dict["adapter_name_or_path"] = train_args.output_dir
+    else:
+        eval_dict["model_name_or_path"] = train_args.output_dir
+    if train_args.report_to == "wandb":
+        eval_dict["wandb_project"] = train_args.wandb_project
+
+    # Use output_dir as default model_path (will be fixed in patch_eval_config if LoRA)
+    eval_args, *_ = HfArgumentParser((EvaluationArguments,)).parse_dict(
+        eval_dict,
+        allow_extra_keys=True,
+    )
+
+    eval_args = patch_eval_config(
+        args=eval_args,
+        additional_args=train_args,
+    )
+
+    return EasyDict(
+        train_args=train_args,
+        merge_args=merge_args,
+        eval_args=eval_args,
+    )

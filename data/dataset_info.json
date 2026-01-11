@@ -1,4 +1,24 @@
 {
+    "gsm8k_bt_grpo_train": {
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "train",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "ground_truth": "backtrack_response"
+        }
+    },
+    "gsm8k_bt_grpo_eval": {
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "test",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "ground_truth": "backtrack_response"
+        }
+    },
     "gsm8k_bt_dpo_train": {
         "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
         "formatting": "alpaca",

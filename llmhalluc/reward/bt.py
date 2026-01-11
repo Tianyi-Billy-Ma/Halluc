@@ -21,6 +21,8 @@ from typing import Any
 
 from transformers import TrainerState
 
+from .base import BaseRewardFunction
+
 
 def _apply_backtracking(token_ids: list[int], backtrack_token_id: int) -> list[int]:
     """Apply backtrack operations to get final sequence.
@@ -83,7 +85,7 @@ def _compute_sequence_accuracy(pred_ids: list[int], true_ids: list[int]) -> floa
 
 
 @dataclass
-class BacktrackRewardFunction:
+class BacktrackRewardFunction(BaseRewardFunction):
     """Multi-component reward function for backtracking GRPO training.
 
     This reward function evaluates LLM completions on four dimensions:

@@ -137,6 +137,7 @@ class GRPOArguments(FTArguments, BaseGRPOConfig):
             "enable_process_rewards": False,
             "enable_format_rewards": True,
             "max_backtracks": 20,
+            "backtrack_token_id": None,
         },
         metadata={"help": "Arguments to pass to reward functions"},
     )

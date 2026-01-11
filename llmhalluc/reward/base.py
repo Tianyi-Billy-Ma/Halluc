@@ -32,6 +32,11 @@ class BaseRewardFunction(ABC):
     name: str = "base_reward"
     weight: float = 1.0
 
+    @property
+    def __name__(self) -> str:
+        """Return the name of the reward function (for TRL compatibility)."""
+        return self.name
+
     @abstractmethod
     def __call__(
         self,

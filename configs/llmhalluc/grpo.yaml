@@ -37,3 +37,5 @@ ddp: 1
 
 deepspeed: configs/deepspeed/ds_z0_config.json
 init_special_tokens: true
+
+reward_funcs: backtrack_grpo

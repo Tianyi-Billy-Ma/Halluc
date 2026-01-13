@@ -23,6 +23,7 @@ DATASET_CONVERTERS = {
     "sft": SFTDatasetConverter,
     "dpo": DPODatasetConverter,
     "grpo": GRPODatasetConverter,
+    "squad_v2": SquadDatasetConverter,
 }
 
 

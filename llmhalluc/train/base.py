@@ -89,6 +89,14 @@ class BaseExecutor(ABC):
         """
         pass
 
+    @abstractmethod
+    def _get_dataset_converter(self):
+        """Return the dataset converter to use (e.g., SFTDatasetConverter, DPODatasetConverter).
+
+        Subclasses must implement this method to specify which dataset converter to use.
+        """
+        pass
+
     def _get_peft_config(self):
         """Build LoraConfig if finetuning_type is 'lora' or 'qlora'.
 
@@ -208,8 +216,23 @@ class BaseExecutor(ABC):
             split=split,
         )
 
+        preprocess_converter_name = dataset_info.get("converter", None)
+        column_mapping = dataset_info.get("columns", {})
+
+        if preprocess_converter_name:
+            preprocess_converter, preprocess_converter_args = get_dataset_converter(
+                preprocess_converter_name, **column_mapping
+            )
+            dataset = process_dataset(
+                dataset=dataset,
+                processor=preprocess_converter,
+                load_from_cache_file=self.args.load_from_cache_file,
+                **preprocess_converter_args,
+            )
+
         converter, converter_args = get_dataset_converter(
-            self.args.converter, **dataset_info.get("columns", {})
+            self._get_dataset_converter(),
+            **column_mapping if not preprocess_converter_name else {},
         )
 
         if getattr(self.args, "replace_text", None):

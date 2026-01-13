@@ -21,6 +21,10 @@ class DPOExecutor(BaseExecutor):
         """Return DPOTrainer class for preference optimization."""
         return DPOTrainer
 
+    def _get_dataset_converter(self):
+        """Return DPODatasetConverter for preference optimization."""
+        return "dpo"
+
 
 def run_dpo(args: DPOArguments):
     """Run DPO training with the given arguments.

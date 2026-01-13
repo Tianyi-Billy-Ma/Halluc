@@ -23,7 +23,7 @@ report_to: wandb
 # eval_dataset: gsm8k_eval
 dataset: gsm8k_bt_sft_train
 eval_dataset: gsm8k_bt_sft_eval
-converter: "gsm8k_sft"
+converter: "sft"
 
 # Evaluation
 model: hf

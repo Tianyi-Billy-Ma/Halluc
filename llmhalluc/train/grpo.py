@@ -31,6 +31,10 @@ class GRPOExecutor(BaseExecutor):
     def __init__(self, args: GRPOArguments):
         super().__init__(args)
 
+    def _get_dataset_converter(self):
+        """Return GRPODatasetConverter for group relative policy optimization."""
+        return "grpo"
+
     def _get_reward_functions(self):
         """Initialize reward functions from the registry.
 

@@ -17,6 +17,10 @@ class SFTExecutor(BaseExecutor):
         """Return SFTTrainer class for supervised fine-tuning."""
         return SFTTrainer
 
+    def _get_dataset_converter(self) -> str:
+        """Return SFTDatasetConverter for supervised fine-tuning."""
+        return "sft"
+
 
 def run_sft(args: SFTArguments):
     """Run SFT training with the given arguments.

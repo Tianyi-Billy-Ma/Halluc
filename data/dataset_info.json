@@ -2,21 +2,25 @@
     "squadv2_sft_train":{
         "hf_hub_url":"rajpurkar/squad_v2",
         "formatting":"alpaca",
+        "converter": "squad_v2",
         "split": "train",
         "columns": {
-            "prompt": "question",
-            "query": "context",
-            "response": "answers"
+            "title": "title",
+            "context": "context",
+            "question": "question",
+            "answer": "answers"
         }
     },
     "squadv2_sft_eval":{
         "hf_hub_url":"rajpurkar/squad_v2",
         "formatting":"alpaca",
+        "converter": "squad_v2",
         "split": "validation",
         "columns": {
-            "prompt": "question",
-            "query": "context",
-            "response": "answers"
+            "title": "title",
+            "context": "context",
+            "question": "question",
+            "answer": "answers"
         }
     },
     "gsm8k_bt_grpo_train": {

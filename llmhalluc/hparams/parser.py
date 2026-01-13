@@ -22,6 +22,40 @@ from .train_args import TrainArguments
 logger = logging.getLogger(__name__)
 
 
+def parse_config_arg(
+    args: list[str],
+    default_config_path: Path,
+) -> tuple[Path, list[str]]:
+    """Extract --config argument from CLI args.
+
+    Args:
+        args: List of CLI arguments
+        default_config_path: Default config path to use if --config is not specified
+
+    Returns:
+        Tuple of (config_path, remaining_args)
+    """
+    config_path = default_config_path
+    remaining_args = []
+
+    i = 0
+    while i < len(args):
+        if args[i] == "--config":
+            if i + 1 < len(args):
+                config_path = Path(args[i + 1])
+                # Handle relative paths - resolve based on parent of default config
+                if not config_path.is_absolute():
+                    config_path = default_config_path.parent.parent.parent / config_path
+                i += 2
+            else:
+                raise ValueError("--config requires a path argument")
+        else:
+            remaining_args.append(args[i])
+            i += 1
+
+    return config_path, remaining_args
+
+
 def load_config(path: str) -> dict[str, any]:
     cfg_path = resolve_path(path)
     if not cfg_path.exists():

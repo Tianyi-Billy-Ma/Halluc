@@ -54,7 +54,11 @@ def extract_answer_flexible(text):
 def normalize_answer(answer_str):
     """
     Normalize answer string for comparison.
-    Removes commas, dollar signs, and trailing periods.
+    Applies normalization similar to gsm8k-cot.yaml regexes_to_ignore:
+    - ',' : remove commas
+    - '\\$' : remove dollar signs
+    - '(?s).*#### ' : remove everything before #### (for ground truth)
+    - '\\.$' : remove trailing period
 
     Args:
         answer_str: Answer string to normalize
@@ -65,14 +69,19 @@ def normalize_answer(answer_str):
     if not answer_str:
         return ""
 
-    # Remove specific characters as defined in the metric config
     normalized = answer_str
-    normalized = normalized.replace(",", "")
-    normalized = normalized.replace("$", "")
-    # Remove trailing period
-    if normalized.endswith("."):
-        normalized = normalized[:-1]
 
+    # Apply regexes_to_ignore normalization
+    # 1. Remove commas
+    normalized = normalized.replace(",", "")
+    # 2. Remove dollar signs
+    normalized = normalized.replace("$", "")
+    # 3. Remove everything before "#### " (handles ground truth format)
+    normalized = re.sub(r"(?s).*#### ", "", normalized)
+    # 4. Remove trailing period
+    normalized = re.sub(r"\.$", "", normalized)
+
+    # Apply ignore_case: true
     return normalized.strip().lower()
 
 

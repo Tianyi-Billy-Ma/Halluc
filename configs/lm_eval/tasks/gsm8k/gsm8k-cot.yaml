@@ -1,19 +1,9 @@
-tag:
-  - math_word_problems
-  - chain_of_thought
-task: gsm8k_cot_simple
-dataset_path: gsm8k
 dataset_name: main
-output_type: generate_until
-training_split: train
-fewshot_split: train
-test_split: test
+dataset_path: gsm8k
+doc_to_target: '{{answer.split(''####'')[-1].strip() if answer is defined else target}}'
+doc_to_text: 'Q: {{question}}
 
-# CoT-style prompt
-doc_to_text: "Q: {{question}}\n  A:"
-doc_to_target: "{{answer.split('####')[-1].strip() if answer is defined else target}}"
-
-# Few-shot examples from gsm8k-cot.yaml
+  A:'
 fewshot_config:
   sampler: first_n
   samples:
@@ -53,41 +43,41 @@ fewshot_config:
       she have left?
     target: Olivia had 23 dollars. 5 bagels for 3 dollars each will be 5 x 3 = 15
       dollars. So she has 23 - 15 dollars left. 23 - 15 is 8. The answer is 8.
-
-# Use custom process_results function with CoT-style filtering
-process_results: !function gsm8k_cot_simple.process_results
-
-# Define metrics that will be returned by process_results
-metric_list:
-  - metric: exact_match,strict-match
-    aggregation: mean
-    higher_is_better: true
-  - metric: exact_match,flexible-extract
-    aggregation: mean
-    higher_is_better: true
-  - metric: bleu
-    aggregation: mean
-    higher_is_better: true
-  - metric: rouge1
-    aggregation: mean
-    higher_is_better: true
-  - metric: rouge2
-    aggregation: mean
-    higher_is_better: true
-  - metric: rougeL
-    aggregation: mean
-    higher_is_better: true
-
-# Generation kwargs from gsm8k-cot.yaml
+filter_list:
+- filter:
+  - function: regex
+    regex_pattern: The answer is (\-?[0-9\.\,]+).
+  - function: take_first
+  name: strict-match
+- filter:
+  - function: regex
+    group_select: -1
+    regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
+  - function: take_first
+  name: flexible-extract
 generation_kwargs:
   do_sample: false
   until:
-    - "Q:"
-    - "</s>"
-    - "<|im_end|>"
-
-repeats: 1
-num_fewshot: 8
-
+  - 'Q:'
+  - </s>
+  - <|im_end|>
+tag:
+- chain_of_thought
 metadata:
   version: 3.0
+metric_list:
+- aggregation: mean
+  higher_is_better: true
+  ignore_case: true
+  ignore_punctuation: false
+  metric: exact_match
+  regexes_to_ignore:
+  - ','
+  - \$
+  - '(?s).*#### '
+  - \.$
+num_fewshot: 8
+output_type: generate_until
+repeats: 1
+task: gsm8k_cot
+test_split: test

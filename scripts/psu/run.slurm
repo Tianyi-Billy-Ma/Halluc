@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J llmhalluc               # 作业名称
 #SBATCH -p GPU-shared                        # 分区名称
-#SBATCH --gres=gpu:h100-80:1          # 请求 8 个 H100 GPU
+#SBATCH --gres=gpu:h100-80:2          # 请求 8 个 H100 GPU
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=100G
 #SBATCH -A cis250100p                 # 账户名称

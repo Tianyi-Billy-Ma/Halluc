@@ -20,7 +20,7 @@ report_to: wandb
 
 # Dataset
 dataset: gsm8k_train
-eval_dataset: gsm8k_sft_eval
+eval_dataset: gsm8k_eval
 converter: "sft"
 
 # Evaluation

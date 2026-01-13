@@ -91,9 +91,10 @@ class TrainArguments(BaseArguments):
     compute_accuracy: bool = True
 
     # Early Stopping
+
     early_stopping: bool = False
     early_stopping_patience: int = 3
-    early_stopping_threshold: float = 0.001
+    early_stopping_threshold: float = 0.0001
 
     # Special Token Initialization
     init_special_tokens: bool = False
@@ -139,7 +140,7 @@ class TrainArguments(BaseArguments):
             "model_name",
             "exp_path",
             "config_path",
-            "wandb_project",
+            # "wandb_project",
             "reward_model",
             "reward_model_type",
             "pref_loss",

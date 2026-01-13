@@ -7,6 +7,7 @@ Usage:
     accelerate launch -m llmhalluc.run_train --config configs/llmhalluc/dpo.yaml --learning_rate 5e-5
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -55,7 +56,14 @@ def main():
 
     setup_dict = hf_cfg_setup(config_path, cli_args=cli_args)
 
-    run_train(setup_dict.args.hf_args)
+    # Set WANDB_PROJECT environment variable if specified in config
+    # HuggingFace Trainer uses this env var to determine the WandB project
+    hf_args = setup_dict.args.hf_args
+    wandb_project = getattr(hf_args, "wandb_project", None)
+    if wandb_project:
+        os.environ["WANDB_PROJECT"] = wandb_project
+
+    run_train(hf_args)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,24 @@
 {
+    "squadv2_sft_train":{
+        "hf_hub_url":"rajpurkar/squad_v2",
+        "formatting":"alpaca",
+        "split": "train",
+        "columns": {
+            "prompt": "question",
+            "query": "context",
+            "response": "answers"
+        }
+    },
+    "squadv2_sft_eval":{
+        "hf_hub_url":"rajpurkar/squad_v2",
+        "formatting":"alpaca",
+        "split": "validation",
+        "columns": {
+            "prompt": "question",
+            "query": "context",
+            "response": "answers"
+        }
+    },
     "gsm8k_bt_grpo_train": {
         "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
         "formatting": "alpaca",

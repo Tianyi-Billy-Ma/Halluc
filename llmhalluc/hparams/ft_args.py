@@ -12,6 +12,14 @@ from .base_args import BaseArguments
 class FTArguments(BaseArguments):
     """Common arguments for fine-tuning tasks."""
 
+    finetuning_type: str = field(
+        default="lora", metadata={"help": "Type of fine-tuning to use"}
+    )
+
+    wandb_project: str = field(
+        default="huggingface", metadata={"help": "WandB project name"}
+    )
+
     config_path: str = field(default=None, metadata={"help": "Path to the config file"})
 
     model_name_or_path: str = field(

@@ -53,10 +53,7 @@ class EvaluationArguments(BaseArguments):
         return excludes
 
     def __post_init__(self):
-        if isinstance(self.tasks, list):
-            task_str = "_".join(self.tasks)
-        else:
-            task_str = self.tasks
+        task_str = "_".join(self.tasks) if isinstance(self.tasks, list) else self.tasks
         self.output_path = str(self.exp_path / "eval" / task_str / "results.json")
 
         self._update_model_args()

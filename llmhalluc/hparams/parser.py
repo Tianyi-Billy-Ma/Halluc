@@ -1,3 +1,4 @@
+import logging
 import json
 from pathlib import Path
 
@@ -16,6 +17,9 @@ from .patcher import (
     patch_sft_config,
 )
 from .train_args import TrainArguments
+
+
+logger = logging.getLogger(__name__)
 
 
 def load_config(path: str) -> dict[str, any]:
@@ -81,6 +85,7 @@ def save_config(args: dict[str, any], path: str | Path) -> None:
     cfg_path = resolve_path(path)
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
     OmegaConf.save(OmegaConf.create(args), cfg_path)
+    logger.info(f"Saved config to {str(cfg_path)}")
 
 
 def save_eval_cmd(args: EvaluationArguments, path: str | Path) -> None:

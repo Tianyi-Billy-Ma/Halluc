@@ -195,8 +195,14 @@ def patch_configs(config: dict[str, any]) -> EasyDict:
     )
     train_args = patch_train_config(args=train_args)
 
+    merge_dict = {
+        "exp_path": train_args.exp_path,
+        "run_name": train_args.run_name,
+        **config,
+    }
+
     merge_args, *_ = HfArgumentParser((MergeArguments,)).parse_dict(
-        config,
+        merge_dict,
         allow_extra_keys=True,
     )
     merge_args = patch_merge_config(

@@ -174,15 +174,24 @@ class TrainArguments(BaseArguments):
         self.exp_path = None
         if self.output_dir is None:
             self.exp_path = (
-                Path(OUTPUT_PATH) / self.model_name / self.run_name / self.stage
+                Path(OUTPUT_PATH)
+                / self.model_name
+                / self.run_name
+                / self.stage
+                / self.finetuning_type
             )
             self.output_dir = str(self.exp_path / "train")
         else:
             self.exp_path = Path(self.output_dir).parent
 
-        model_name, run_name, stage = self.model_name, self.run_name, self.stage
+        model_name, run_name, stage, finetuning_type = (
+            self.model_name,
+            self.run_name,
+            self.stage,
+            self.finetuning_type,
+        )
 
-        self.run_name = f"{model_name}_{run_name}_{stage}"
+        self.run_name = f"{model_name}_{run_name}_{stage}_{finetuning_type}"
         self.config_path = self.exp_path / "train_config.yaml"
 
         if self.eval_dataset:

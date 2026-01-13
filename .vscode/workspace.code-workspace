@@ -8,6 +8,12 @@
 		},
 		{
 			"path": "../../LLaGA"
+		},
+		{
+			"path": "../../../Overleaf/ICML-26-DrugBench"
+		},
+		{
+			"path": "../../../Overleaf/ICML-26-LLMHalluc"
 		}
 	],
 	"settings": {}

@@ -36,6 +36,8 @@ def load_config(path: str) -> dict[str, any]:
     else:
         raise ValueError(f"Unsupported config file type: {cfg_path.suffix}")
 
+    logger.info(f"Loaded config from {cfg_path}")
+
 
 def apply_overrides(config: dict[str, any], overrides: list[str]) -> dict[str, any]:
     if not overrides:

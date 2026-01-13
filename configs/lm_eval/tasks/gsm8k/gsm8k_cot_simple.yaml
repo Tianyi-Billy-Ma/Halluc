@@ -5,8 +5,6 @@ task: gsm8k_cot_simple
 dataset_path: gsm8k
 dataset_name: main
 output_type: generate_until
-training_split: train
-fewshot_split: train
 test_split: test
 
 # CoT-style prompt

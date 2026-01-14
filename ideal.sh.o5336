@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/users/tma2/Projects/Halluc/llmhalluc/run_exp.py", line 16, in <module>
+    from llmhalluc.eval import run_eval
+  File "/users/tma2/Projects/Halluc/llmhalluc/eval/__init__.py", line 3, in <module>
+    from .base import run_eval
+  File "/users/tma2/Projects/Halluc/llmhalluc/eval/base.py", line 9, in <module>
+    from llmhalluc.utils import load_config
+ImportError: cannot import name 'load_config' from 'llmhalluc.utils' (/users/tma2/Projects/Halluc/llmhalluc/utils/__init__.py)

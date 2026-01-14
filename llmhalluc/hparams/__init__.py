@@ -1,7 +1,7 @@
 from .eval_args import EvaluationArguments
 from .ft_args import DPOArguments, GRPOArguments, SFTArguments
 from .merge_args import MergeArguments
-from .parser import e2e_cfg_setup, hf_cfg_setup, parse_config_arg
+from .parser import e2e_cfg_setup, hf_cfg_setup, parse_config_arg, load_config
 from .patcher import (
     patch_configs,
     patch_dpo_config,
@@ -24,4 +24,5 @@ __all__ = [
     "patch_sft_config",
     "patch_dpo_config",
     "patch_grpo_config",
+    "load_config",
 ]

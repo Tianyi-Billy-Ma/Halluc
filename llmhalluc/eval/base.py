@@ -6,7 +6,7 @@ from lm_eval.tasks import TaskManager
 
 # Import metrics to register them before evaluation
 import llmhalluc.eval.metrics  # noqa: F401
-from llmhalluc.utils import load_config
+from llmhalluc.hparams import load_config
 
 logger = logging.getLogger(__name__)
 

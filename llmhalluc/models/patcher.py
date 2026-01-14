@@ -11,14 +11,14 @@ from .embedding import resize_embedding_layer
 logger = logging.getLogger(__name__)
 
 
-def _get_special_tokens_config(args) -> dict[str, str] | None:
+def _get_special_tokens_config(args) -> dict | None:
     """Get special tokens config from args.
 
     Args:
         args: Arguments object with init_special_tokens and new_special_tokens_config
 
     Returns:
-        Dict mapping special tokens to descriptions, or None if disabled
+        Dict mapping special tokens to config (str or dict), or None if disabled
 
     Raises:
         ValueError: If init_special_tokens is True but new_special_tokens_config is not provided

@@ -1,6 +1,7 @@
 """Dataset converters for llmhalluc."""
 
 from .base import DatasetConverter
+from .collator import BacktrackMaskingCollator
 from .dpo import DPODatasetConverter
 from .grpo import GRPODatasetConverter
 from .manager import DATASET_CONVERTERS, get_dataset, get_dataset_converter
@@ -19,4 +20,5 @@ __all__ = [
     "SFTDatasetConverter",
     "DPODatasetConverter",
     "GRPODatasetConverter",
+    "BacktrackMaskingCollator",
 ]

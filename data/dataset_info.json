@@ -1,7 +1,7 @@
 {
-    "squadv2_sft_train":{
-        "hf_hub_url":"rajpurkar/squad_v2",
-        "formatting":"alpaca",
+    "squadv2_sft_train": {
+        "hf_hub_url": "rajpurkar/squad_v2",
+        "formatting": "alpaca",
         "converter": "squad_v2",
         "split": "train",
         "columns": {
@@ -11,9 +11,9 @@
             "answer": "answers"
         }
     },
-    "squadv2_sft_eval":{
-        "hf_hub_url":"rajpurkar/squad_v2",
-        "formatting":"alpaca",
+    "squadv2_sft_eval": {
+        "hf_hub_url": "rajpurkar/squad_v2",
+        "formatting": "alpaca",
         "converter": "squad_v2",
         "split": "validation",
         "columns": {
@@ -63,6 +63,26 @@
             "query": "query",
             "chosen": "backtrack_response",
             "rejected": "original_response"
+        }
+    },
+    "gsm8k_bt_masked_sft_train": {
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "train",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "response": "backtrack_response"
+        }
+    },
+    "gsm8k_bt_masked_sft_eval": {
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "test",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "response": "backtrack_response"
         }
     },
     "gsm8k_bt_sft_train": {

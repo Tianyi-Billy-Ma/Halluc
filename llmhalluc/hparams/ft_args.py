@@ -82,6 +82,12 @@ class FTArguments(BaseArguments):
         default="<|BACKTRACK|>", metadata={"help": "Backtrack token"}
     )
 
+    # Backtrack Training
+    train_backtrack: bool = field(
+        default=False,
+        metadata={"help": "Enable backtrack training with error token masking"},
+    )
+
 
 @dataclass
 class SFTArguments(FTArguments, BaseSFTConfig):

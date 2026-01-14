@@ -1,0 +1,9 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.11",
+  "include": ["llmhalluc"],
+  "exclude": ["**/node_modules", "**/__pycache__", ".git", "lm-evaluation-harness"],
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false
+}

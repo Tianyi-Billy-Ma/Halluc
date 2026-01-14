@@ -1,9 +1,6 @@
-from ..extras.constant import BACKTRACK_TOKEN_ID
-
-
 def backtrack_generation(
     token_ids: list[int],
-    backtrack_token_id: int = BACKTRACK_TOKEN_ID,
+    backtrack_token_id: int,
     backtrack_count: int = 0,
 ):
     generated_token_ids, backtrack_count = [], 0

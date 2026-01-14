@@ -2,12 +2,46 @@ BACKTRACK_TOKEN = "<|BACKTRACK|>"
 HF_USER_ID = "mtybilly"
 
 
+# Default semantic words for backtrack-like tokens
+BACKTRACK_SEMANTIC_WORDS = [
+    "delete",
+    "remove",
+    "undo",
+    "erase",
+    "back",
+    "cancel",
+    "retry",
+    "revert",
+    "reset",
+    "clear",
+    "backspace",
+]
+
+
+# Special token configuration mapping
+# Config format:
+#   "<|TOKEN|>": {
+#       "description": "Description of the token",
+#       "semantic_words": ["word1", "word2", ...],
+#       "strategy": "combined" | "description" | "semantic" | "mean",
+#       "description_weight": 0.5
+#   }
 SPECIAL_TOKEN_MAPPING = {
     "llama3": {
-        "<|reserved_special_token_0|>": "This token is used to delete the previous token in the response."
+        "<|reserved_special_token_0|>": {
+            "description": "This token is used to delete the previous token in the response.",
+            "semantic_words": BACKTRACK_SEMANTIC_WORDS,
+            "strategy": "combined",
+            "description_weight": 0.5,
+        }
     },
     "qwen3": {
-        "<|BACKTRACK|>": "This token is used to delete the previous token in the response."
+        "<|BACKTRACK|>": {
+            "description": "This token is used to delete the previous token in the response.",
+            "semantic_words": BACKTRACK_SEMANTIC_WORDS,
+            "strategy": "combined",
+            "description_weight": 0.5,
+        }
     },
 }
 

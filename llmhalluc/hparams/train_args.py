@@ -134,6 +134,9 @@ class TrainArguments(BaseArguments):
     # SFT
     compute_only_loss: bool = False
 
+    # Backtrack Training
+    train_backtrack: bool = False
+
     @property
     def yaml_exclude(self):
         excludes = {

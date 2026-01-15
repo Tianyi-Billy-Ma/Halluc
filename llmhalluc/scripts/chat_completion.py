@@ -44,6 +44,7 @@ def main():
         "--do_sample", action="store_true", help="Whether to use sampling."
     )
     parser.add_argument("--top_p", type=float, default=1.0, help="Top-p sampling.")
+    parser.add_argument("--backtrack_token", type=str, default="<|reserved_special_token_0|>", help="Special backtrack token.")
 
     args = parser.parse_args()
 
@@ -83,18 +84,10 @@ def main():
         print(f"Loading LoRA adapter from {args.adapter_name_or_path}...")
         model = PeftModel.from_pretrained(model, args.adapter_name_or_path)
 
-    # Detect special token (check both base and adapter paths)
-    backtrack_token = detect_special_token(args.model_name_or_path)
-    if not backtrack_token and args.adapter_name_or_path:
-        backtrack_token = detect_special_token(args.adapter_name_or_path)
 
-    if backtrack_token:
-        print(f"Detected special backtrack token: {backtrack_token}")
-        # Find its ID
-        backtrack_id = tokenizer.convert_tokens_to_ids(backtrack_token)
-        print(f"Backtrack Token ID: {backtrack_id}")
-    else:
-        print("No known special backtrack token detected for this model type.")
+    backtrack_id = tokenizer.convert_tokens_to_ids(args.backtrack_token)
+    print(f"Backtrack token: {args.backtrack_token}")
+    print(f"Backtrack token ID: {backtrack_id}")
 
     # Input
     prompt_text = args.message

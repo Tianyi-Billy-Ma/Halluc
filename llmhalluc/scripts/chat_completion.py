@@ -50,18 +50,10 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
-    # Determine tokenizer path
-    # If explicit tokenizer path is given, use it
-    # Else if adapter path is given, try using adapter path (often contains tokenizer.json for fine-tuned models)
-    # Else fallback to base model path
     tokenizer_path = args.model_name_or_path
-
     if args.tokenizer_name_or_path:
         tokenizer_path = args.tokenizer_name_or_path
     elif args.adapter_name_or_path:
-        # Check if tokenizer files exist in adapter directory to avoid cryptic errors
-        # But we'll trust the user/library to handle the fallback logic usually,
-        # however standard LoRA save often saves tokenizer.
         tokenizer_path = args.adapter_name_or_path
 
     print(f"Loading tokenizer from {tokenizer_path}...")
@@ -71,14 +63,7 @@ def main():
     except Exception as e:
         print(f"Error loading tokenizer from {tokenizer_path}: {e}")
         # Fallback to base model if adapter path failed
-        if tokenizer_path == args.adapter_name_or_path:
-            print(
-                f"Fallback: Loading tokenizer from base model {args.model_name_or_path}..."
-            )
-            tokenizer_path = args.model_name_or_path
-            tokenizer = get_tokenizer(tokenizer_path, trust_remote_code=True)
-        else:
-            raise e
+        raise e
 
     print(f"Loading base model from {args.model_name_or_path}...")
     # Use device_map="auto" if CUDA is available for efficient loading, otherwise fallback

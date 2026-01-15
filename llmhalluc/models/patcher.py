@@ -60,6 +60,10 @@ def patch_tokenizer(tokenizer: PreTrainedTokenizer, args=None) -> PreTrainedToke
     special_tokens_config = _get_special_tokens_config(args)
     if special_tokens_config:
         special_tokens = list(special_tokens_config.keys())
+
+        # Ensure tokens are strings
+        special_tokens = [str(t) for t in special_tokens]
+
         num_added = tokenizer.add_special_tokens(
             {"additional_special_tokens": special_tokens},
             replace_additional_special_tokens=False,

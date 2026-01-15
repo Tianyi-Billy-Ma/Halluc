@@ -66,13 +66,19 @@ def main():
 
     print(f"Loading tokenizer from {tokenizer_path}...")
     try:
-        tokenizer = get_tokenizer(tokenizer_path)
+        # Pass trust_remote_code=True to be safe
+        tokenizer = get_tokenizer(tokenizer_path, trust_remote_code=True)
     except Exception as e:
-        print(f"Error loading tokenizer: {e}")
-        print(
-            "Tip: If you are loading a LoRA adapter, --model_name_or_path must be the BASE model, not the adapter path."
-        )
-        return
+        print(f"Error loading tokenizer from {tokenizer_path}: {e}")
+        # Fallback to base model if adapter path failed
+        if tokenizer_path == args.adapter_name_or_path:
+            print(
+                f"Fallback: Loading tokenizer from base model {args.model_name_or_path}..."
+            )
+            tokenizer_path = args.model_name_or_path
+            tokenizer = get_tokenizer(tokenizer_path, trust_remote_code=True)
+        else:
+            raise e
 
     print(f"Loading base model from {args.model_name_or_path}...")
     # Use device_map="auto" if CUDA is available for efficient loading, otherwise fallback

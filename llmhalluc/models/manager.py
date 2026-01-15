@@ -38,6 +38,14 @@ def get_tokenizer(tokenizer_name_or_path: str, args=None, **kwargs):
     Returns:
         Loaded and patched tokenizer
     """
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path, **kwargs)
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path, **kwargs)
+    except Exception:
+        # Fallback: sometimes tokenizer loading fails if config is missing, try trusting remote code or ignoring mismatch
+        # Or if it's a directory issue
+        tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer_name_or_path, trust_remote_code=True, **kwargs
+        )
+
     tokenizer = patch_tokenizer(tokenizer, args=args)
     return tokenizer

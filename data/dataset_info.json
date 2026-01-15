@@ -65,6 +65,30 @@
             "rejected": "original_response"
         }
     },
+    "gsm8k_backtrack_sft_train": {
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "train",
+        "converter": "sft_backtrack",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "response_prefix": "backtrack_prefix",
+            "response_suffix": "backtrack_suffix"
+        }
+    },
+    "gsm8k_backtrack_sft_eval": {
+        "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
+        "formatting": "alpaca",
+        "split": "test",
+        "converter": "sft_backtrack",
+        "columns": {
+            "prompt": "prompt",
+            "query": "query",
+            "response_prefix": "backtrack_prefix",
+            "response_suffix": "backtrack_suffix"
+        }
+    },
     "gsm8k_bt_masked_sft_train": {
         "hf_hub_url": "mtybilly/GSM8K-Backtrack-all",
         "formatting": "alpaca",

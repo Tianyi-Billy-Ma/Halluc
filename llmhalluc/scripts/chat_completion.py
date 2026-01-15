@@ -35,7 +35,7 @@ def main():
         "--message", "-m", type=str, required=True, help="Input message/prompt."
     )
     parser.add_argument(
-        "--max_new_tokens", type=int, default=128, help="Max new tokens to generate."
+        "--max_new_tokens", type=int, default=2048, help="Max new tokens to generate."
     )
     parser.add_argument(
         "--temperature", type=float, default=1.0, help="Sampling temperature."

@@ -46,7 +46,7 @@ class SFTDatasetConverter(DatasetConverter):
         response_content = example.get(self.response_key, "")
         return {
             "prompt": [
-                {"role": "user", "content": query_content + "\n" + prompt_content}
+                {"role": "user", "content": prompt_content + "\n" + query_content}
             ],
             "completion": [{"role": "assistant", "content": response_content}],
         }

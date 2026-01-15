@@ -1,17 +1,17 @@
 import logging
 
 from lm_eval import simple_evaluate
-from lm_eval.loggers import EvaluationTracker
+from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
 
 # Import metrics to register them before evaluation
 import llmhalluc.eval.metrics  # noqa: F401
-from llmhalluc.hparams import load_config
+from llmhalluc.hparams import EvaluationArguments, load_config
 
 logger = logging.getLogger(__name__)
 
 
-def run_eval(config_path: str, ddp=False):
+def run_eval(config_path: str):
     eval_config = load_config(config_path)
 
     model = eval_config.get("model", "hf")
@@ -19,18 +19,27 @@ def run_eval(config_path: str, ddp=False):
     if isinstance(model_args, dict):
         model_args = ",".join(f"{k}={v}" for k, v in model_args.items())
 
-    output_path = eval_config.get("output_path")
+    include_path = eval_config.get("include_path")
     tasks = eval_config.get("tasks", "")
+    log_samples = eval_config.get("log_samples", True)
 
     if isinstance(tasks, str):
         tasks = [tasks]
 
-    task_manager = None
-    include_path = eval_config.get("include_path")
-    if include_path:
-        task_manager = TaskManager(include_path=include_path)
+    task_manager = TaskManager(include_path=include_path) if include_path else None
 
-    evaluation_tracker = EvaluationTracker(output_path=output_path)
+    evaluation_tracker = EvaluationTracker(output_path=eval_config.get("output_path"))
+
+    # Parse wandb configuration
+    wandb_args = EvaluationArguments.parse_wandb_args(eval_config.get("wandb_args"))
+
+    # Initialize WandbLogger if wandb_args provided
+    wandb_logger = None
+    if wandb_args:
+        try:
+            wandb_logger = WandbLogger(wandb_args)
+        except Exception as e:
+            logger.warning(f"Failed to initialize WandbLogger: {e}")
 
     logger.info(f"Running evaluation with model={model}, tasks={tasks}")
     results = simple_evaluate(
@@ -38,21 +47,23 @@ def run_eval(config_path: str, ddp=False):
         model_args=model_args,
         tasks=tasks,
         task_manager=task_manager,
-        wandb_args=eval_config.get("wandb_args"),
-        # num_fewshot=eval_config.get("num_fewshot"),
-        # batch_size=eval_config.get("batch_size", "auto"),
-        # limit=eval_config.get("limit"),
-        log_samples=eval_config.get("log_samples", True),
-        # random_seed=eval_config.get("seed"),
-        # numpy_random_seed=eval_config.get("seed"),
-        # torch_random_seed=eval_config.get("seed"),
-        # fewshot_random_seed=eval_config.get("seed"),
+        log_samples=log_samples,
         evaluation_tracker=evaluation_tracker,
     )
 
-    evaluation_tracker.save_results_aggregated(
-        results=results, samples=results.get("samples")
-    )
+    samples = results.get("samples") if log_samples else None
+
+    # Log to wandb after evaluation
+    if wandb_logger and results:
+        try:
+            wandb_logger.post_init(results)
+            wandb_logger.log_eval_result()
+            if samples:
+                wandb_logger.log_eval_samples(samples)
+        except Exception as e:
+            logger.warning(f"Logging to W&B failed: {e}")
+
+    evaluation_tracker.save_results_aggregated(results=results, samples=samples)
     return results
 
 

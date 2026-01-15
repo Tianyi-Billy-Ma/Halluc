@@ -12,7 +12,7 @@ class EvaluationArguments(BaseArguments):
     model_args: str = ""
     tasks: str = ""
     output_path: str = ""
-    wandb_args: str = ""
+    wandb_args: str | dict = ""
 
     log_samples: bool = True
     apply_chat_template: bool = False
@@ -33,6 +33,30 @@ class EvaluationArguments(BaseArguments):
     model_name_or_path: str = ""
     tokenizer_name_or_path: str = ""
     adapter_name_or_path: str = ""
+
+    @staticmethod
+    def parse_wandb_args(wandb_args: str | dict | None) -> dict | None:
+        """Parse wandb_args string or dict to dictionary.
+
+        Args:
+            wandb_args: Dictionary or comma-separated key=value pairs string.
+
+        Returns:
+            Dictionary of wandb init args, or None if input is empty.
+        """
+        if not wandb_args:
+            return None
+
+        if isinstance(wandb_args, dict):
+            return wandb_args
+
+        parsed_args = {}
+        for part in wandb_args.split(","):
+            if "=" in part:
+                k, v = part.split("=", 1)
+                parsed_args[k.strip()] = v.strip()
+
+        return parsed_args if parsed_args else None
 
     @property
     def yaml_exclude(self):

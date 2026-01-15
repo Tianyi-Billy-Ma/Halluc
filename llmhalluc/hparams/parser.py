@@ -56,7 +56,7 @@ def parse_config_arg(
     return config_path, remaining_args
 
 
-def load_config(path: str) -> dict[str, any]:
+def load_config(path: str | Path) -> dict[str, any]:
     cfg_path = resolve_path(path)
     if not cfg_path.exists():
         raise FileNotFoundError(f"Config file not found: {cfg_path}")
@@ -277,7 +277,7 @@ def save_ft_config(args: SFTArguments | DPOArguments, path: str | Path) -> None:
 
 
 def hf_cfg_setup(
-    config_path: str,
+    config_path: str | Path,
     save_cfg: bool = True,
     cli_args: list[str] | None = None,
 ) -> EasyDict:

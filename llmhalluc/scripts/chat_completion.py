@@ -17,7 +17,13 @@ def detect_special_token(model_path: str):
 def main():
     parser = argparse.ArgumentParser(description="Run a simple chat completion task.")
     parser.add_argument(
-        "--model_name_or_path", type=str, required=True, help="Path to the model."
+        "--model_name_or_path", type=str, required=True, help="Path to the BASE model."
+    )
+    parser.add_argument(
+        "--adapter_name_or_path",
+        type=str,
+        default=None,
+        help="Path to the LoRA adapter (optional).",
     )
     parser.add_argument(
         "--tokenizer_name_or_path",
@@ -44,6 +50,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
+    # Determine tokenizer path (usually base model)
     tokenizer_path = (
         args.tokenizer_name_or_path
         if args.tokenizer_name_or_path
@@ -51,20 +58,16 @@ def main():
     )
 
     print(f"Loading tokenizer from {tokenizer_path}...")
-    tokenizer = get_tokenizer(tokenizer_path)
+    try:
+        tokenizer = get_tokenizer(tokenizer_path)
+    except Exception as e:
+        print(f"Error loading tokenizer: {e}")
+        print(
+            "Tip: If you are loading a LoRA adapter, --model_name_or_path must be the BASE model, not the adapter path."
+        )
+        return
 
-    print(f"Loading model from {args.model_name_or_path}...")
-
-    # Detect special token
-    backtrack_token = detect_special_token(args.model_name_or_path)
-    if backtrack_token:
-        print(f"Detected special backtrack token: {backtrack_token}")
-        # Find its ID
-        backtrack_id = tokenizer.convert_tokens_to_ids(backtrack_token)
-        print(f"Backtrack Token ID: {backtrack_id}")
-    else:
-        print("No known special backtrack token detected for this model type.")
-
+    print(f"Loading base model from {args.model_name_or_path}...")
     # Use device_map="auto" if CUDA is available for efficient loading, otherwise fallback
     kwargs = {}
     if device == "cuda":
@@ -74,6 +77,26 @@ def main():
         kwargs["device_map"] = "cpu"
 
     model = get_model(args.model_name_or_path, tokenizer=tokenizer, **kwargs)
+
+    # Load Adapter if provided
+    if args.adapter_name_or_path:
+        from peft import PeftModel
+
+        print(f"Loading LoRA adapter from {args.adapter_name_or_path}...")
+        model = PeftModel.from_pretrained(model, args.adapter_name_or_path)
+
+    # Detect special token (check both base and adapter paths)
+    backtrack_token = detect_special_token(args.model_name_or_path)
+    if not backtrack_token and args.adapter_name_or_path:
+        backtrack_token = detect_special_token(args.adapter_name_or_path)
+
+    if backtrack_token:
+        print(f"Detected special backtrack token: {backtrack_token}")
+        # Find its ID
+        backtrack_id = tokenizer.convert_tokens_to_ids(backtrack_token)
+        print(f"Backtrack Token ID: {backtrack_id}")
+    else:
+        print("No known special backtrack token detected for this model type.")
 
     # Input
     prompt_text = args.message

@@ -34,11 +34,6 @@ logging_steps: 10
 
 # Special Tokens
 init_special_tokens: true
-new_special_tokens_config:
-  <|BACKTRACK|>:
-    description: "Token used to delete the previous token."
-    strategy: "semantic"
-    semantic_words: ["delete", "remove", "undo", "erase", "back", "cancel"]
 
 # Constants
 seed: 42

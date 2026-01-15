@@ -96,6 +96,17 @@ def patch_eval_config(
             # Here, we use the trained model's tokenizer
             args.tokenizer_name_or_path = additional_args.output_dir
             args._update_model_args()
+            
+        if additional_args.finetuning_type in ["lora", "qlora"]:
+            args.model_name_or_path = additional_args.model_name_or_path
+            args.adapter_name_or_path = additional_args.output_dir
+        else:
+            args.model_name_or_path = additional_args.output_dir    
+        args._update_model_args()
+        
+        if additional_args.report_to == "wandb":
+            args.wandb_project = additional_args.wandb_project  
+            args._update_wandb_args()
 
     return args
 
@@ -215,13 +226,6 @@ def patch_configs(config: dict[str, any]) -> EasyDict:
         "run_name": train_args.run_name,
         **config,
     }
-    if train_args.finetuning_type in ["lora", "qlora"]:
-        eval_dict["model_name_or_path"] = train_args.model_name_or_path
-        eval_dict["adapter_name_or_path"] = train_args.output_dir
-    else:
-        eval_dict["model_name_or_path"] = train_args.output_dir
-    if train_args.report_to == "wandb":
-        eval_dict["wandb_project"] = train_args.wandb_project
 
     # Use output_dir as default model_path (will be fixed in patch_eval_config if LoRA)
     eval_args, *_ = HfArgumentParser((EvaluationArguments,)).parse_dict(

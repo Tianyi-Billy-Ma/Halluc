@@ -25,7 +25,6 @@ class EvaluationArguments(BaseArguments):
     disable_wandb: bool = True
 
     enable_thinking: bool = False
-    stage: str
     run_name: str
     exp_path: Path = field()
     config_path: Path = field(init=False)
@@ -63,7 +62,6 @@ class EvaluationArguments(BaseArguments):
         excludes = {
             "wandb_project",
             "enable_thinking",
-            "stage",
             "run_name",
             "exp_path",
             "config_path",

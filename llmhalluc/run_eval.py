@@ -8,8 +8,9 @@ import sys
 import os
 from pathlib import Path
 
+
+from llmhalluc.hparams import hf_cfg_setup, parse_config_arg
 from llmhalluc.eval import run_eval
-from llmhalluc.hparams import e2e_cfg_setup, parse_config_arg
 from llmhalluc.utils import setup_logging
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -21,7 +22,7 @@ def main():
 
     config_path, cli_args = parse_config_arg(sys.argv[1:], DEFAULT_CONFIG_PATH)
 
-    setup_dict = e2e_cfg_setup(DEFAULT_CONFIG_PATH, save_cfg=True)
+    setup_dict = hf_cfg_setup(config_path, cli_args=cli_args)
 
     hf_args = setup_dict.args.hf_args
     wandb_project = getattr(hf_args, "wandb_project", None)

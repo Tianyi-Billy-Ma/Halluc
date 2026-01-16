@@ -39,3 +39,8 @@ init_special_tokens: true
 seed: 42
 deepspeed: configs/deepspeed/ds_z0_config.json
 early_stopping: true
+
+# Evaluation
+model: hf-bt
+tasks: gsm8k_simple
+eval_mode: cli

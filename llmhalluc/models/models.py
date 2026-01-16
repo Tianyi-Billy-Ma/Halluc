@@ -1,6 +1,11 @@
+import logging
+
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
+from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
+
+logger = logging.getLogger(__name__)
 
 @register_model("hf-bt")
 class HFLMBT(HFLM):
@@ -22,7 +27,6 @@ class HFLMBT(HFLM):
         return super().tok_decode(processed_tokens, skip_special_tokens)
 
     def _patch_tokenizer(self):
-        from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
 
         model_name = self.model.name_or_path
 
@@ -30,12 +34,14 @@ class HFLMBT(HFLM):
             if key in model_name:
                 backtrack_token = list(value.keys())[0]
                 break
-
-        self.tokenizer.add_special_tokens(
-            {"additional_special_tokens": [backtrack_token]},
-            replace_additional_special_tokens=False,
-        )
+        # self.tokenizer.add_special_tokens(
+        #     {"additional_special_tokens": [backtrack_token]},
+        #     replace_additional_special_tokens=False,
+        # )
         self.backtrack_token_id = self.tokenizer.encode(backtrack_token)[0]
+        logger.info(
+            f"Patched tokenizer with backtrack token '{backtrack_token}' (id: {self.backtrack_token_id})"
+        )
 
 
 # <<<<<<<<

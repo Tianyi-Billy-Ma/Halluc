@@ -11,4 +11,4 @@ TOKENIZER_NAME_OR_PATH="meta-llama/Llama-3.2-1b"
 
 
 accelerate launch -m llmhalluc.run_eval \
-    --config ./scripts/crc/ideal.sh 
+    --config ./configs/llmhalluc/backtrack_sft.yaml 

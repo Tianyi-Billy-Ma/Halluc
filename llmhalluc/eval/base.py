@@ -6,6 +6,7 @@ from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
 
 import llmhalluc.eval.metrics  # noqa: F401
+import llmhalluc.models  # noqa: F401
 from llmhalluc.hparams import EvaluationArguments, load_config
 
 logger = logging.getLogger(__name__)

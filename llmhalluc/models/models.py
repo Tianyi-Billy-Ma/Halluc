@@ -7,6 +7,7 @@ from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
 
 logger = logging.getLogger(__name__)
 
+
 @register_model("hf-bt")
 class HFLMBT(HFLM):
     def __init__(self, *args, **kwargs):
@@ -27,13 +28,16 @@ class HFLMBT(HFLM):
         return super().tok_decode(processed_tokens, skip_special_tokens)
 
     def _patch_tokenizer(self):
-
         model_name = self.model.name_or_path
 
+        backtrack_token = None
         for key, value in SPECIAL_TOKEN_MAPPING.items():
             if key in model_name:
                 backtrack_token = list(value.keys())[0]
                 break
+        if not backtrack_token:
+            raise ValueError(f"No backtrack token found for model {model_name}")
+
         # self.tokenizer.add_special_tokens(
         #     {"additional_special_tokens": [backtrack_token]},
         #     replace_additional_special_tokens=False,

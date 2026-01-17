@@ -8,6 +8,7 @@ from lm_eval.tasks import TaskManager
 import llmhalluc.eval.metrics  # noqa: F401
 import llmhalluc.models  # noqa: F401
 from llmhalluc.hparams import EvaluationArguments, load_config
+from llmhalluc.utils import is_rank_zero
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,14 @@ def run_eval(config_path: str):
         log_samples=log_samples,
         evaluation_tracker=evaluation_tracker,
     )
+
+    if results is None:
+        # In distributed mode, only rank 0 gets results; other ranks get None
+        if not is_rank_zero():
+            logger.debug("Non-main process: skipping result processing.")
+            return None
+        logger.error("Evaluation returned no results. Check model/task configuration.")
+        return None
 
     samples = results.get("samples") if log_samples else None
 

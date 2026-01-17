@@ -27,10 +27,7 @@ class GenerationArguments(BaseArguments):
 
     # Dataset
     dataset: str = ""
-    dataset_split: str = "train"
     max_samples: int | None = None
-    prompt_column: str = "prompt"
-    reference_column: str | None = "response"
 
     # Generation parameters
     max_new_tokens: int = 512

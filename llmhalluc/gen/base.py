@@ -78,7 +78,8 @@ class GenerationExecutor:
                 f"Dataset '{self.args.dataset}' does not have 'hf_hub_url'"
             )
 
-        split = self.args.dataset_split
+        # Use split from dataset_info.json, default to "train"
+        split = dataset_info.get("split", "train")
         dataset = load_dataset(
             hf_url,
             name=dataset_info.get("subset"),
@@ -122,7 +123,7 @@ class GenerationExecutor:
     def _format_prompt(self, example: dict[str, Any]) -> str:
         # After SFTDatasetConverter, prompt is a list of messages
         # e.g., [{"role": "user", "content": "..."}]
-        messages = example.get(self.args.prompt_column, [])
+        messages = example.get("prompt", [])
 
         if isinstance(messages, str):
             # Fallback: if prompt is still a string, wrap it
@@ -201,20 +202,20 @@ class GenerationExecutor:
 
                 result = {
                     "idx": idx,
-                    "prompt": example.get(self.args.prompt_column, ""),
+                    "prompt": example.get("prompt", ""),
                     "formatted_prompt": batch_prompts[i],
                     "generations": [o.text for o in output.outputs],
                 }
 
-                # Include reference if available
-                if self.args.reference_column and self.args.reference_column in example:
-                    result["reference"] = example[self.args.reference_column]
+                # Include reference (completion) if available
+                if "completion" in example:
+                    result["reference"] = example["completion"]
 
-                # Include all original columns
+                # Include all original columns as metadata
                 result["metadata"] = {
                     k: v
                     for k, v in example.items()
-                    if k not in [self.args.prompt_column, self.args.reference_column]
+                    if k not in ["prompt", "completion"]
                 }
 
                 all_results.append(result)

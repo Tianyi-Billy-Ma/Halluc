@@ -40,3 +40,12 @@ Halluc/
 ├── lm-evaluation-harness/  # Eval framework
 └── scripts/            # Installation scripts
 ```
+
+### Scripts
+
+The script folder `./scripts` contains various utility scripts for model training from difference sources.
+
+- `delta/`: Scripts for using the Delta supercomputer at NCSA.
+- `crc/`: Scripts for using the CRC cluster at University of Notre Dame.
+- `pcs/`: Scripts for using the PCS cluster at Pitt Supercomputer Center.
+- `amz/`: Scripts for using Amazon Web Services (AWS) for training.

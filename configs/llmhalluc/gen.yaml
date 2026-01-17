@@ -1,34 +1,37 @@
 # Batch generation configuration
-# Usage: python -m llmhalluc.run_gen --config configs/llmhalluc/generation.yaml
+# Usage: python -m llmhalluc.run_gen --config configs/llmhalluc/gen.yaml
+#
+# Multi-GPU: vLLM handles multi-GPU natively via tensor_parallel_size.
+# Set tensor_parallel_size=N for N GPUs (must divide evenly into model layers).
+
+run_name: gsm8k
+
+stage: sft
+finetuning_type: lora
 
 # Model
 model_name_or_path: meta-llama/Llama-3.2-1B
-tokenizer_name_or_path: null # Defaults to model_name_or_path
-adapter_name_or_path: null # Optional: path to LoRA adapter
+adapter_name_or_path: null
 trust_remote_code: true
 
 # Dataset (key from data/dataset_info.json)
-dataset: gsm8k_sft_train
-dataset_split: train
-max_samples: null # null for all samples
-prompt_column: prompt
-reference_column: backtrack_response
+dataset: gsm8k_train
+max_samples: null
 
 # Generation parameters
 max_new_tokens: 512
 temperature: 0.7
 top_p: 0.9
-top_k: -1 # -1 to disable
+top_k: -1
 do_sample: true
 num_return_sequences: 1
 
-# vLLM settings
-tensor_parallel_size: 1
+# vLLM settings (tensor_parallel_size: null = auto-detect GPUs)
+tensor_parallel_size: null
 gpu_memory_utilization: 0.9
-max_model_len: null # null for auto
+max_model_len: null
 
 # Output
-output_dir: ./outputs/generation
 output_filename: generations.jsonl
 save_every: 100
 

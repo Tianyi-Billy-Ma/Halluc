@@ -368,3 +368,24 @@ def hf_cfg_setup(
 
     setup_dict.args.hf_args = hf_args
     return setup_dict
+
+
+def gen_cfg_setup(
+    config_path: str | Path,
+    cli_args: list[str] | None = None,
+    save_cfg: bool = True,
+) -> GenerationArguments:
+    config = load_config(config_path)
+
+    if cli_args:
+        overrides = parse_cli_to_dotlist(cli_args)
+        config = apply_overrides(config, overrides)
+
+    gen_args, *_ = HfArgumentParser(GenerationArguments).parse_dict(
+        config, allow_extra_keys=True
+    )
+
+    if save_cfg:
+        save_config(gen_args.to_yaml(), gen_args.config_path)
+
+    return gen_args

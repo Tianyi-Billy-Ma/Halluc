@@ -3,33 +3,27 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from llmhalluc.extras import OUTPUT_PATH
+
 from .base_args import BaseArguments
 
 
 @dataclass(kw_only=True)
 class GenerationArguments(BaseArguments):
-    """Arguments for batch generation using vLLM.
-
-    Follows the same pattern as EvaluationArguments for integration
-    with the e2e_cfg_setup pipeline.
-    """
-
-    # Experiment tracking (set by patch_configs)
-    run_name: str
-    exp_path: Path = field()
+    run_name: str = "generation"
+    stage: str = "sft"
+    finetuning_type: str = "lora"
+    exp_path: Path | None = None
     config_path: Path = field(init=False)
 
-    # Model
     model_name_or_path: str = ""
     tokenizer_name_or_path: str = ""
     adapter_name_or_path: str = ""
     trust_remote_code: bool = True
 
-    # Dataset
     dataset: str = ""
     max_samples: int | None = None
 
-    # Generation parameters
     max_new_tokens: int = 512
     temperature: float = 0.7
     top_p: float = 0.9
@@ -37,19 +31,19 @@ class GenerationArguments(BaseArguments):
     do_sample: bool = True
     num_return_sequences: int = 1
 
-    # vLLM settings
-    tensor_parallel_size: int = 1
+    tensor_parallel_size: int | None = None
     gpu_memory_utilization: float = 0.9
     max_model_len: int | None = None
 
-    # Output
     output_path: str = ""
     output_filename: str = "generations.jsonl"
     save_every: int = 100
 
-    # Misc
     seed: int = 42
     batch_size: int = 32
+
+    # Derived field
+    model_name: str = field(init=False)
 
     @property
     def yaml_exclude(self):
@@ -57,16 +51,31 @@ class GenerationArguments(BaseArguments):
             "run_name",
             "exp_path",
             "config_path",
+            "model_name",
         }
 
     def __post_init__(self):
-        # Set output path based on exp_path
+        self.model_name = Path(self.model_name_or_path).name.lower()
+
+        if self.exp_path is None:
+            self.exp_path = (
+                Path(OUTPUT_PATH)
+                / self.model_name
+                / self.run_name
+                / self.stage
+                / self.finetuning_type
+            )
+
         self.output_path = str(self.exp_path / "gen")
         self.config_path = self.exp_path / "gen_config.yaml"
 
-        # Default tokenizer to model path
         if not self.tokenizer_name_or_path:
             self.tokenizer_name_or_path = self.model_name_or_path
+
+        if self.tensor_parallel_size is None:
+            import torch
+
+            self.tensor_parallel_size = max(1, torch.cuda.device_count())
 
     @property
     def output_dir(self) -> Path:

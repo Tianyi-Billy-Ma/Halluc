@@ -29,7 +29,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any
 
 import yaml
 
@@ -48,7 +48,7 @@ def setup_logging(verbose: bool = False) -> None:
     )
 
 
-def parse_key_value_pairs(args: List[str]) -> Dict[str, Any]:
+def parse_key_value_pairs(args: list[str]) -> dict[str, Any]:
     """Parse key=value pairs from command line arguments.
 
     Args:
@@ -79,7 +79,7 @@ def parse_key_value_pairs(args: List[str]) -> Dict[str, Any]:
     return parsed_args
 
 
-def convert_value_type(value: str) -> Union[str, int, float, bool, None]:
+def convert_value_type(value: str) -> str | int | float | bool | None:
     """Convert string value to appropriate Python type.
 
     Args:
@@ -112,7 +112,7 @@ def convert_value_type(value: str) -> Union[str, int, float, bool, None]:
     return value
 
 
-def load_yaml_file(file_path: Union[str, Path]) -> Dict[str, Any]:
+def load_yaml_file(file_path: str | Path) -> dict[str, Any]:
     """Load YAML file and return its contents.
 
     Args:
@@ -139,7 +139,7 @@ def load_yaml_file(file_path: Union[str, Path]) -> Dict[str, Any]:
         raise yaml.YAMLError(f"Invalid YAML in file {file_path}: {e}")
 
 
-def save_yaml_file(data: Dict[str, Any], file_path: Union[str, Path]) -> None:
+def save_yaml_file(data: dict[str, Any], file_path: str | Path) -> None:
     """Save dictionary to YAML file.
 
     Args:
@@ -160,9 +160,9 @@ def save_yaml_file(data: Dict[str, Any], file_path: Union[str, Path]) -> None:
 
 
 def update_yaml_config(
-    input_file: Union[str, Path],
-    output_file: Union[str, Path],
-    updates: Dict[str, Any],
+    input_file: str | Path,
+    output_file: str | Path,
+    updates: dict[str, Any],
     preserve_comments: bool = True,
 ) -> None:
     """Update YAML configuration file with new values.

@@ -1,13 +1,11 @@
 import argparse
-import json
 import glob
+import json
 import os
-import sys
-from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 
 
-def load_jsonl(file_path: str) -> List[Dict[str, Any]]:
+def load_jsonl(file_path: str) -> list[dict[str, Any]]:
     """Load a JSONL file into a list of dictionaries."""
     data = []
     with open(file_path, "r", encoding="utf-8") as f:
@@ -20,7 +18,7 @@ def load_jsonl(file_path: str) -> List[Dict[str, Any]]:
     return data
 
 
-def find_sample_files(base_path: str) -> List[str]:
+def find_sample_files(base_path: str) -> list[str]:
     """Find all samples_*.jsonl files in the given directory and subdirectories."""
     # If a specific file is given, return it
     if os.path.isfile(base_path) and base_path.endswith(".jsonl"):
@@ -31,7 +29,7 @@ def find_sample_files(base_path: str) -> List[str]:
     return glob.glob(search_pattern, recursive=True)
 
 
-def print_sample(sample: Dict[str, Any], index: int, total: int):
+def print_sample(sample: dict[str, Any], index: int, total: int):
     """Print a single sample in a readable format."""
     print("=" * 80)
     print(f"Sample {index + 1}/{total}")
@@ -100,7 +98,7 @@ def print_sample(sample: Dict[str, Any], index: int, total: int):
     print("-" * 80)
 
 
-def review_interactive(samples: List[Dict[str, Any]]):
+def review_interactive(samples: list[dict[str, Any]]):
     """Interactive review mode."""
     if not samples:
         print("No samples to review.")
@@ -112,7 +110,7 @@ def review_interactive(samples: List[Dict[str, Any]]):
     while True:
         print_sample(samples[idx], idx, total)
 
-        print(f"\n[Commands] n: next, p: previous, q: quit, g <num>: go to index")
+        print("\n[Commands] n: next, p: previous, q: quit, g <num>: go to index")
         cmd = input("Command: ").strip().lower()
 
         if cmd == "q":

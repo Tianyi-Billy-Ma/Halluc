@@ -1,7 +1,9 @@
 import argparse
+
 import torch
-from llmhalluc.models import get_model, get_tokenizer
+
 from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
+from llmhalluc.models import get_model, get_tokenizer
 
 
 def detect_special_token(model_path: str):
@@ -102,7 +104,7 @@ def main():
         print(f"Warning: Could not apply chat template ({e}). Using raw prompt.")
         formatted_prompt = prompt_text
 
-    print(f"\n[Input]")
+    print("\n[Input]")
     print(f"Raw Message: {prompt_text}")
     print(f"Formatted Prompt:\n{formatted_prompt}")
 
@@ -129,7 +131,7 @@ def main():
     full_output_text = tokenizer.decode(output_ids[0], skip_special_tokens=False)
     generated_text = tokenizer.decode(new_tokens, skip_special_tokens=False)
 
-    print(f"\n[Output]")
+    print("\n[Output]")
     print(f"Output Token IDs (Full): {output_ids.tolist()[0]}")
     print(f"Output Token IDs (New Only): {new_tokens.tolist()}")
     print("-" * 40)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from llmhalluc.extras.constant import MODEL_PATH, OUTPUT_PATH
+from llmhalluc.extras.constant import MODEL_PATH
 from llmhalluc.hparams.base_args import BaseArguments
 
 

@@ -1,7 +1,6 @@
 """GRPO training executor for TRL GRPOTrainer."""
 
 import logging
-from collections.abc import Callable
 
 from trl import GRPOTrainer
 

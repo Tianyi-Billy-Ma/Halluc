@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-
 from trl import DPOConfig as BaseDPOConfig
 from trl import GRPOConfig as BaseGRPOConfig
 from trl import SFTConfig as BaseSFTConfig

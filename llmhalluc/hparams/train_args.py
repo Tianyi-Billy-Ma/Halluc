@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 import torch
 
 from llmhalluc.extras import OUTPUT_PATH

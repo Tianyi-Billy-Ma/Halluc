@@ -105,21 +105,21 @@ class BacktrackDatasetConverter(DatasetConverter):
 
 
 
-@dataclass 
+@dataclass
 class SFTBacktrackDatasetConverter(DatasetConverter):
-    
+
     prompt_key: str = "prompt"
     query_key: str = "query"
     response_prefix_key: str = "backtrack_prefix"
     response_suffix_key: str = "backtrack_suffix"
-    
-    
+
+
     prompt: str | None = None
     query: str | None = None
     response_prefix: str | None = None
     response_suffix: str | None = None
-    
-    
+
+
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         """Convert an example to TRL messages format.
 
@@ -134,8 +134,7 @@ class SFTBacktrackDatasetConverter(DatasetConverter):
         response_prefix_content = example.get(self.response_prefix_key, "")
         response_suffix_content = example.get(self.response_suffix_key, "")
         return {
-            "prompt": prompt_content, 
+            "prompt": prompt_content,
             "query": f"Question: \n{query_content}\n\nAnswer: \n{response_prefix_content}",
             "response": response_suffix_content,
         }
-    

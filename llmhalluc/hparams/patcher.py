@@ -9,6 +9,7 @@ from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
 
 from .base_args import BaseArguments
 from .eval_args import EvaluationArguments
+from .gen_args import GenerationArguments
 from .merge_args import MergeArguments
 from .train_args import TrainArguments
 
@@ -96,16 +97,16 @@ def patch_eval_config(
             # Here, we use the trained model's tokenizer
             args.tokenizer_name_or_path = additional_args.output_dir
             args._update_model_args()
-            
+
         if additional_args.finetuning_type in ["lora", "qlora"]:
             args.model_name_or_path = additional_args.model_name_or_path
             args.adapter_name_or_path = additional_args.output_dir
         else:
-            args.model_name_or_path = additional_args.output_dir    
+            args.model_name_or_path = additional_args.output_dir
         args._update_model_args()
-        
+
         if additional_args.report_to == "wandb":
-            args.wandb_project = additional_args.wandb_project  
+            args.wandb_project = additional_args.wandb_project
             args._update_wandb_args()
 
     return args
@@ -192,6 +193,37 @@ def patch_grpo_config(args) -> dict[str, any]:
     return arg_dict
 
 
+def patch_gen_config(
+    args: GenerationArguments,
+    additional_args: TrainArguments | None = None,
+) -> GenerationArguments:
+    """Hook for experiment-specific generation config tweaks.
+
+    Args:
+        args: GenerationArguments to patch
+        additional_args: TrainArguments for referencing training config
+
+    Returns:
+        Patched GenerationArguments
+    """
+    if additional_args:
+        # Use trained model/adapter paths
+        if additional_args.finetuning_type in ["lora", "qlora"]:
+            args.model_name_or_path = additional_args.model_name_or_path
+            args.adapter_name_or_path = additional_args.output_dir
+        else:
+            args.model_name_or_path = additional_args.output_dir
+
+        # Use trained tokenizer
+        args.tokenizer_name_or_path = additional_args.output_dir
+
+        # Copy dataset info if not explicitly set
+        if not args.dataset and additional_args.dataset:
+            args.dataset = additional_args.dataset
+
+    return args
+
+
 def patch_configs(config: dict[str, any]) -> EasyDict:
     """Parse and patch all config types from a single config dict.
 
@@ -199,7 +231,7 @@ def patch_configs(config: dict[str, any]) -> EasyDict:
         config: Raw config dictionary
 
     Returns:
-        EasyDict with train_args, merge_args, eval_args
+        EasyDict with train_args, merge_args, eval_args, gen_args
     """
     train_args, *_ = HfArgumentParser([TrainArguments]).parse_dict(
         config, allow_extra_keys=True
@@ -238,8 +270,26 @@ def patch_configs(config: dict[str, any]) -> EasyDict:
         additional_args=train_args,
     )
 
+    # Parse and patch generation args
+    gen_dict = {
+        "exp_path": train_args.exp_path,
+        "run_name": train_args.run_name,
+        **config,
+    }
+
+    gen_args, *_ = HfArgumentParser((GenerationArguments,)).parse_dict(
+        gen_dict,
+        allow_extra_keys=True,
+    )
+
+    gen_args = patch_gen_config(
+        args=gen_args,
+        additional_args=train_args,
+    )
+
     return EasyDict(
         train_args=train_args,
         merge_args=merge_args,
         eval_args=eval_args,
+        gen_args=gen_args,
     )

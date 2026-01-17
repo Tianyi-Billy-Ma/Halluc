@@ -1,7 +1,8 @@
 """SFT training executor for TRL SFTTrainer."""
 
-from trl import SFTTrainer
 import logging
+
+from trl import SFTTrainer
 
 from llmhalluc.data.collator import BacktrackMaskingCollator
 from llmhalluc.hparams.ft_args import SFTArguments

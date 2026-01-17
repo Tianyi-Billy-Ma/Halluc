@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 from pathlib import Path
 
 from easydict import EasyDict
@@ -10,6 +10,7 @@ from llmhalluc.utils.sys_utils import resolve_path
 
 from .eval_args import EvaluationArguments
 from .ft_args import DPOArguments, GRPOArguments, SFTArguments
+from .gen_args import GenerationArguments
 from .patcher import (
     patch_configs,
     patch_dpo_config,
@@ -17,7 +18,6 @@ from .patcher import (
     patch_sft_config,
 )
 from .train_args import TrainArguments
-
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +159,24 @@ def save_eval_cmd(args: EvaluationArguments, path: str | Path) -> None:
         f.write(full_cmd + "\n")
 
 
+def save_gen_cmd(args: GenerationArguments, path: str | Path) -> None:
+    """Save generation command script."""
+    cmd_path = resolve_path(path)
+    cmd_path.parent.mkdir(parents=True, exist_ok=True)
+
+    cmd_parts = [
+        "python -m llmhalluc.run_gen",
+        "--config",
+        str(args.config_path),
+    ]
+
+    full_cmd = " ".join(cmd_parts)
+
+    with open(cmd_path, "w") as f:
+        f.write("#!/bin/bash\n")
+        f.write(full_cmd + "\n")
+
+
 def verify_train_args(args: TrainArguments) -> None:
     """Verify training arguments and check for compatibility issues."""
     # 1. Model path check
@@ -228,6 +246,7 @@ def e2e_cfg_setup(
     train_args = arg_dict.train_args
     merge_args = arg_dict.merge_args
     eval_args = arg_dict.eval_args
+    gen_args = arg_dict.gen_args
 
     # Verify arguments
     verify_train_args(train_args)
@@ -245,14 +264,22 @@ def e2e_cfg_setup(
             eval_args.to_yaml(),
             eval_args.config_path,
         )
+        save_config(
+            gen_args.to_yaml(),
+            gen_args.config_path,
+        )
 
         # Save evaluation command script
         save_eval_cmd(eval_args, eval_args.config_path.parent / "eval.sh")
+
+        # Save generation command script
+        save_gen_cmd(gen_args, gen_args.config_path.parent / "gen.sh")
 
     output = {
         "TRAIN_CONFIG_PATH": str(train_args.config_path),
         "MERGE_CONFIG_PATH": str(merge_args.config_path),
         "EVAL_CONFIG_PATH": str(eval_args.config_path),
+        "GEN_CONFIG_PATH": str(gen_args.config_path),
     }
 
     return EasyDict(paths=output, args=arg_dict)

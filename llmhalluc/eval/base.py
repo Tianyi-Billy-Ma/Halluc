@@ -1,6 +1,5 @@
 import logging
 
-import lm_eval
 from lm_eval import simple_evaluate
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager

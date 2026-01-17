@@ -35,6 +35,14 @@ SPECIAL_TOKEN_MAPPING = {
             "description_weight": 0.5,
         }
     },
+    "llama": {
+        "<|reserved_special_token_0|>": {
+            "description": "This token is used to delete the previous token in the response.",
+            "semantic_words": BACKTRACK_SEMANTIC_WORDS,
+            "strategy": "combined",
+            "description_weight": 0.5,
+        }
+    },
     "qwen3": {
         "<|BACKTRACK|>": {
             "description": "This token is used to delete the previous token in the response.",

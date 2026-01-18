@@ -160,17 +160,48 @@ def save_eval_cmd(args: EvaluationArguments, path: str | Path) -> None:
 
 
 def save_gen_cmd(args: GenerationArguments, path: str | Path) -> None:
-    """Save generation command script."""
+    """Save generation command script with detailed arguments."""
     cmd_path = resolve_path(path)
     cmd_path.parent.mkdir(parents=True, exist_ok=True)
 
     cmd_parts = [
         "python -m llmhalluc.run_gen",
-        "--config",
-        str(args.config_path),
+        f"--model_name_or_path {args.model_name_or_path}",
+        f"--dataset {args.dataset}",
+        f"--output_path {args.output_path}",
+        f"--output_filename {args.output_filename}",
+        f"--max_new_tokens {args.max_new_tokens}",
+        f"--temperature {args.temperature}",
+        f"--top_p {args.top_p}",
+        f"--batch_size {args.batch_size}",
+        f"--seed {args.seed}",
     ]
 
-    full_cmd = " ".join(cmd_parts)
+    if args.adapter_name_or_path:
+        cmd_parts.append(f"--adapter_name_or_path {args.adapter_name_or_path}")
+
+    if args.tokenizer_name_or_path:
+        cmd_parts.append(f"--tokenizer_name_or_path {args.tokenizer_name_or_path}")
+
+    if args.max_samples is not None:
+        cmd_parts.append(f"--max_samples {args.max_samples}")
+
+    if args.tensor_parallel_size is not None:
+        cmd_parts.append(f"--tensor_parallel_size {args.tensor_parallel_size}")
+
+    if args.max_model_len is not None:
+        cmd_parts.append(f"--max_model_len {args.max_model_len}")
+
+    if args.do_sample:
+        cmd_parts.append("--do_sample")
+
+    if args.top_k > 0:
+        cmd_parts.append(f"--top_k {args.top_k}")
+
+    if args.num_return_sequences > 1:
+        cmd_parts.append(f"--num_return_sequences {args.num_return_sequences}")
+
+    full_cmd = " \\\n    ".join(cmd_parts)
 
     with open(cmd_path, "w") as f:
         f.write("#!/bin/bash\n")

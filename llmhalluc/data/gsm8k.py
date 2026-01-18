@@ -54,20 +54,18 @@ class GSM8KDatasetConverter(DatasetConverter):
         key_mapping: Mapping of dataset keys to standard keys.
     """
 
-    split: str = "train"
-    key_mapping: dict[str, str] | None = None
-    prompt: str = MATH_INSTRUCTION
+    prompt_key: str = "prompt"
+    query_key: str = "question"
+    response_key: str = "answer"
+
+    prompt: str = ""
+    query: str = ""
+    response: str = ""
 
     def __post_init__(self) -> None:
-        """Initialize default values after dataclass creation."""
-        if self.key_mapping is None:
-            self.key_mapping = {
-                "prompt": "prompt",
-                "query": "question",
-                "response": "answer",
-            }
-        if self.prompt is None:
-            self.prompt = MATH_INSTRUCTION
+        self.prompt_key = self.prompt or self.prompt_key
+        self.query_key = self.query or self.query_key
+        self.response_key = self.response or self.response_key
 
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         """Convert an example to backtrack format.
@@ -79,14 +77,16 @@ class GSM8KDatasetConverter(DatasetConverter):
             Converted example with backtrack content and modified response.
         """
         # Extract fields using key mapping
-        prompt = self.prompt
-        query = example[self.key_mapping["query"]]
-        response = example[self.key_mapping["response"]]
+        prompt_content = example.get(self.prompt_key, "")
+        query_content = example.get(self.query_key, "")
+        response_content = example.get(self.response_key, "")
+
+        prompt_content = query_content + "\n" + prompt_content
 
         return {
-            "prompt": prompt,
-            "query": query,
-            "response": response,
+            "prompt": prompt_content,
+            "query": "",
+            "response": response_content,
         }
 
 

@@ -133,6 +133,7 @@
         "hf_hub_url": "mtybilly/GSM8K",
         "formatting": "alpaca",
         "split": "train",
+        "converter": "gsm8k",
         "columns": {
             "prompt": "prompt",
             "query": "query",
@@ -143,6 +144,7 @@
         "hf_hub_url": "mtybilly/GSM8K",
         "formatting": "alpaca",
         "split": "test",
+        "converter": "gsm8k",
         "columns": {
             "prompt": "prompt",
             "query": "query",

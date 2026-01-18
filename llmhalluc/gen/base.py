@@ -144,16 +144,24 @@ class GenerationExecutor:
         """Create vLLM SamplingParams from args."""
         from vllm import SamplingParams
 
-        params = {
-            "max_tokens": self.args.max_new_tokens,
-            "temperature": self.args.temperature if self.args.do_sample else 0.0,
-            "top_p": self.args.top_p,
-            "n": self.args.num_return_sequences,
-            "seed": self.args.seed,
-        }
-
-        if self.args.top_k > 0:
-            params["top_k"] = self.args.top_k
+        if self.args.do_sample:
+            params = {
+                "max_tokens": self.args.max_new_tokens,
+                "temperature": self.args.temperature,
+                "top_p": self.args.top_p,
+                "n": self.args.num_return_sequences,
+                "seed": self.args.seed,
+            }
+            if self.args.top_k > 0:
+                params["top_k"] = self.args.top_k
+        else:
+            params = {
+                "max_tokens": self.args.max_new_tokens,
+                "temperature": 0.0,
+                "top_p": 1.0,
+                "n": self.args.num_return_sequences,
+                "seed": self.args.seed,
+            }
 
         return SamplingParams(**params)
 
@@ -204,7 +212,10 @@ class GenerationExecutor:
                     "idx": idx,
                     "prompt": example.get("prompt", ""),
                     "formatted_prompt": batch_prompts[i],
-                    "generations": [o.text for o in output.outputs],
+                    "generations": [
+                        {"text": o.text, "finish_reason": o.finish_reason}
+                        for o in output.outputs
+                    ],
                 }
 
                 # Include reference (completion) if available
@@ -269,7 +280,7 @@ class GenerationExecutor:
             "temperature": self.args.temperature,
             "max_new_tokens": self.args.max_new_tokens,
         }
-        summary_path = self.args.results_path.with_suffix(".summary.json")
+        summary_path = self.args.output_dir / "summary.json"
         with open(summary_path, "w") as f:
             json.dump(summary, f, indent=2)
 

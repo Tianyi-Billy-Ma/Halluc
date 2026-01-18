@@ -61,7 +61,7 @@ def run_eval(config_path: str):
         return None
 
     samples = results.get("samples") if log_samples else None
-
+    evaluation_tracker.save_results_aggregated(results=results, samples=samples)
     # Log to wandb after evaluation
     if wandb_logger and results:
         try:
@@ -72,7 +72,6 @@ def run_eval(config_path: str):
         except Exception as e:
             logger.warning(f"Logging to W&B failed: {e}")
 
-    evaluation_tracker.save_results_aggregated(results=results, samples=samples)
     return results
 
 

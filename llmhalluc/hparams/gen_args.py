@@ -25,8 +25,8 @@ class GenerationArguments(BaseArguments):
     max_samples: int | None = None
 
     max_new_tokens: int = 512
-    temperature: float = 0.7
-    top_p: float = 0.9
+    temperature: float = 0.0
+    top_p: float = 0.0
     top_k: int = -1
     do_sample: bool = True
     num_return_sequences: int = 1

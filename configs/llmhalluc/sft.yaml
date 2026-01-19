@@ -22,15 +22,15 @@ report_to: wandb
 # dataset: gsm8k_train
 # eval_dataset: gsm8k_eval
 
-dataset: "squadv2_sft_train"
-eval_dataset: "squadv2_sft_eval"
+dataset: "gsm8k_train"
+eval_dataset: "gsm8k_eval"
 converter: "sft"
 
 
 # Evaluation
 model: hf
 # tasks: gsm8k_simple
-tasks: squadv2
+tasks: gsm8k
 eval_mode: cli
 
 wandb_project: Halluc

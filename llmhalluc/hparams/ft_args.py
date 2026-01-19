@@ -92,6 +92,11 @@ class FTArguments(BaseArguments):
         metadata={"help": "Reset position IDs after backtrack tokens"},
     )
 
+    dataset_download_mode: str | None = field(
+        default=None,
+        metadata={"help": "Dataset download mode (e.g., force_redownload)"},
+    )
+
 
 @dataclass
 class SFTArguments(FTArguments, BaseSFTConfig):

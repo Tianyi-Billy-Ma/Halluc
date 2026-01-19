@@ -24,6 +24,22 @@ def print_dataset(dataset: Dataset | DatasetDict, n: int = 1) -> None:
             print(f"=== Split: {split} ===")
             print_dataset(ds, n)
     else:
+        print(f"  Num samples: {len(dataset)}")
+        print(f"  Columns: {dataset.column_names}")
+
+        if "input_ids" in dataset.column_names:
+            try:
+                lengths = [len(x) for x in dataset["input_ids"]]
+                total_tokens = sum(lengths)
+                avg_tokens = total_tokens / len(lengths) if lengths else 0
+                max_tokens = max(lengths) if lengths else 0
+                print(f"  Total tokens: {total_tokens}")
+                print(f"  Avg tokens: {avg_tokens:.2f}")
+                print(f"  Max tokens: {max_tokens}")
+            except Exception as e:
+                print(f"  Could not calculate token stats: {e}")
+
+        print(f"--- Sample 0 ---")
         for i in range(min(n, len(dataset))):
             print(json.dumps(dataset[i], indent=2, default=str))
 

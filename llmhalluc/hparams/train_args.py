@@ -51,6 +51,7 @@ class TrainArguments(BaseArguments):
     converter: str = ""
     preprocessing_num_workers: int = 8
     dataloader_num_workers: int = 4
+    dataset_download_mode: str | None = None
 
     ### output
     output_dir: str | None = None

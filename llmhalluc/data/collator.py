@@ -5,10 +5,11 @@ from typing import Any
 
 import torch
 from transformers import PreTrainedTokenizer
+from transformers.data.data_collator import DataCollatorMixin
 
 
 @dataclass
-class BacktrackMaskingCollator:
+class BacktrackMaskedCollator(DataCollatorMixin):
     """
     Data collator that masks error tokens from loss computation.
 
@@ -45,13 +46,14 @@ class BacktrackMaskingCollator:
     backtrack_token: str = "<|BACKTRACK|>"
     pad_to_multiple_of: int | None = None
     return_tensors: str = "pt"
+    reset_position_ids: bool = False
 
     def __post_init__(self):
         """Initialize backtrack_token_id if not provided."""
         if self.backtrack_token_id == -1:
             # Try to get token ID from tokenizer
             token_id = self.tokenizer.convert_tokens_to_ids(self.backtrack_token)
-            # convert_tokens_to_ids returns int for single token, list for multiple
+
             if isinstance(token_id, list):
                 if len(token_id) == 1:
                     token_id = token_id[0]
@@ -118,7 +120,38 @@ class BacktrackMaskingCollator:
 
         return error_mask
 
-    def __call__(self, examples: list[dict[str, Any]]) -> dict[str, torch.Tensor]:
+    def _compute_position_ids(self, input_ids: torch.Tensor) -> torch.Tensor:
+        """
+        Compute position IDs with backtrack rewinding logic.
+
+        Logic:
+            x x x x x b b x x => 0 1 2 3 4 5 6 3 4
+            x x x b x b => 0 1 2 3 2 3
+
+            - Normal tokens (x): Use stack_depth (semantic position).
+            - Backtrack tokens (b): Use last_pos + 1 (continue physical sequence).
+            - Backtrack tokens decrement stack_depth (rewind semantic position).
+        """
+        positions = []
+        stack_depth = 0
+        last_pos = -1
+
+        for token_id in input_ids:
+            if token_id == self.backtrack_token_id:
+                # Backtrack token: continues strictly from previous position
+                current = last_pos + 1
+                stack_depth = max(0, stack_depth - 1)
+            else:
+                # Normal token: takes logical position (stack depth)
+                current = stack_depth
+                stack_depth += 1
+
+            positions.append(current)
+            last_pos = current
+
+        return torch.tensor(positions, dtype=torch.long)
+
+    def torch_call(self, examples: list[dict[str, Any]]) -> dict[str, torch.Tensor]:
         """
         Collate examples and apply error masking to labels.
 
@@ -151,6 +184,13 @@ class BacktrackMaskingCollator:
         # Compute error masks for each sequence
         error_masks = [self._compute_error_mask(ids) for ids in input_ids_list]
 
+        # Compute position IDs if requested
+        position_ids_list = None
+        if self.reset_position_ids:
+            position_ids_list = [
+                self._compute_position_ids(ids) for ids in input_ids_list
+            ]
+
         # Create labels (clone of input_ids, will mask errors)
         labels_list = [ids.clone() for ids in input_ids_list]
 
@@ -169,22 +209,36 @@ class BacktrackMaskingCollator:
             ) * self.pad_to_multiple_of
 
         # Initialize padded tensors
-        pad_token_id = self.tokenizer.pad_token_id
-        if pad_token_id is None:
-            pad_token_id = 0
-        padded_input_ids = torch.full(
-            (batch_size, max_len), pad_token_id, dtype=torch.long
-        )
+        pad_val = 0
+        if self.tokenizer.pad_token_id is not None:
+            pad_val = int(self.tokenizer.pad_token_id)
+
+        padded_input_ids = torch.full((batch_size, max_len), pad_val, dtype=torch.long)
         padded_attention_mask = torch.zeros((batch_size, max_len), dtype=torch.long)
         padded_labels = torch.full((batch_size, max_len), -100, dtype=torch.long)
+
+        padded_position_ids = None
+        if position_ids_list is not None:
+            padded_position_ids = torch.zeros((batch_size, max_len), dtype=torch.long)
 
         # Get padding side from tokenizer (default to right if not set)
         padding_side = getattr(self.tokenizer, "padding_side", "right")
 
         # Fill in values based on padding side
-        for i, (ids, mask, labels) in enumerate(
-            zip(input_ids_list, attention_mask_list, labels_list)
-        ):
+        # Create iterator that handles optional position_ids
+        iter_data = zip(input_ids_list, attention_mask_list, labels_list)
+        if position_ids_list is not None:
+            iter_data = zip(
+                input_ids_list, attention_mask_list, labels_list, position_ids_list
+            )
+
+        for i, items in enumerate(iter_data):
+            if position_ids_list is not None:
+                ids, mask, labels, pos_ids = items
+            else:
+                ids, mask, labels = items
+                pos_ids = None
+
             seq_len = len(ids)
             if padding_side == "left":
                 # Left padding: sequence is right-aligned
@@ -192,14 +246,23 @@ class BacktrackMaskingCollator:
                 padded_input_ids[i, start_idx:] = ids
                 padded_attention_mask[i, start_idx:] = mask
                 padded_labels[i, start_idx:] = labels
+                if pos_ids is not None:
+                    padded_position_ids[i, start_idx:] = pos_ids
             else:
                 # Right padding (default): sequence is left-aligned
                 padded_input_ids[i, :seq_len] = ids
                 padded_attention_mask[i, :seq_len] = mask
                 padded_labels[i, :seq_len] = labels
+                if pos_ids is not None:
+                    padded_position_ids[i, :seq_len] = pos_ids
 
-        return {
+        batch = {
             "input_ids": padded_input_ids,
             "attention_mask": padded_attention_mask,
             "labels": padded_labels,
         }
+
+        if padded_position_ids is not None:
+            batch["position_ids"] = padded_position_ids
+
+        return batch

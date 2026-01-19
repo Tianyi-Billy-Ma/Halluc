@@ -250,6 +250,15 @@ def verify_train_args(args: TrainArguments) -> None:
             "Please provide an eval_dataset or disable early_stopping."
         )
 
+    # 5. Position IDs Check
+    if getattr(args, "reset_position_ids", False) and not getattr(
+        args, "train_backtrack", False
+    ):
+        raise ValueError(
+            "reset_position_ids=True requires train_backtrack=True. "
+            "Please enable train_backtrack or disable reset_position_ids."
+        )
+
 
 def e2e_cfg_setup(
     config_path: str,

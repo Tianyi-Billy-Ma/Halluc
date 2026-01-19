@@ -125,6 +125,7 @@ class GRPOExecutor(BaseExecutor):
             hf_url,
             name=dataset_info.get("subset"),
             split=split,
+            download_mode=getattr(self.args, "dataset_download_mode", None),
         )
 
         # Build converter kwargs with tokenizer if tokenize_labels is enabled

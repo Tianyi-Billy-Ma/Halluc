@@ -214,6 +214,7 @@ class BaseExecutor(ABC):
             hf_url,
             name=dataset_info.get("subset"),
             split=split,
+            download_mode=getattr(self.args, "dataset_download_mode", None),
         )
 
         preprocess_converter_name = dataset_info.get("converter", None)

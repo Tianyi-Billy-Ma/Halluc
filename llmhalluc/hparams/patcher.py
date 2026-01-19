@@ -1,5 +1,6 @@
 """Config patching utilities for training arguments."""
 
+import logging
 from pathlib import Path
 
 from easydict import EasyDict
@@ -12,6 +13,8 @@ from .eval_args import EvaluationArguments
 from .gen_args import GenerationArguments
 from .merge_args import MergeArguments
 from .train_args import TrainArguments
+
+logger = logging.getLogger(__name__)
 
 
 def patch_train_config(args: TrainArguments) -> TrainArguments:
@@ -48,6 +51,16 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
                 args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
                 args.backtrack_token = "<|reserved_special_token_0|>"
             # qwen3 can use <|BACKTRACK|> directly, no replace needed
+
+    # Patch reset_position_ids
+    if getattr(args, "reset_position_ids", False) and not getattr(
+        args, "train_backtrack", False
+    ):
+        logger.warning(
+            "reset_position_ids is True but train_backtrack is False. "
+            "Forcing reset_position_ids to False."
+        )
+        args.reset_position_ids = False
 
     return args
 
@@ -239,9 +252,9 @@ def patch_configs(config: dict[str, any]) -> EasyDict:
     train_args = patch_train_config(args=train_args)
 
     merge_dict = {
+        **config,
         "exp_path": train_args.exp_path,
         "run_name": train_args.run_name,
-        **config,
     }
 
     merge_args, *_ = HfArgumentParser((MergeArguments,)).parse_dict(
@@ -254,9 +267,9 @@ def patch_configs(config: dict[str, any]) -> EasyDict:
     )
 
     eval_dict = {
+        **config,
         "exp_path": train_args.exp_path,
         "run_name": train_args.run_name,
-        **config,
     }
 
     # Use output_dir as default model_path (will be fixed in patch_eval_config if LoRA)
@@ -272,9 +285,9 @@ def patch_configs(config: dict[str, any]) -> EasyDict:
 
     # Parse and patch generation args
     gen_dict = {
+        **config,
         "exp_path": train_args.exp_path,
         "run_name": train_args.run_name,
-        **config,
     }
 
     gen_args, *_ = HfArgumentParser((GenerationArguments,)).parse_dict(

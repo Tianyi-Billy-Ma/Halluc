@@ -135,6 +135,7 @@ class TrainArguments(BaseArguments):
 
     # Backtrack Training
     train_backtrack: bool = False
+    reset_position_ids: bool = False
 
     @property
     def yaml_exclude(self):

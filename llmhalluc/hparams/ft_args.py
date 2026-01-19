@@ -87,6 +87,11 @@ class FTArguments(BaseArguments):
         metadata={"help": "Enable backtrack training with error token masking"},
     )
 
+    reset_position_ids: bool = field(
+        default=False,
+        metadata={"help": "Reset position IDs after backtrack tokens"},
+    )
+
 
 @dataclass
 class SFTArguments(FTArguments, BaseSFTConfig):

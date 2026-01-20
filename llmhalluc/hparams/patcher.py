@@ -29,8 +29,8 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
     Returns:
         Patched TrainArguments (same object, modified in place)
     """
-    train_backtrack = getattr(train_args, "train_backtrack", False):
-    init_special_tokens = getattr(args, "init_special_tokens", False)
+    train_backtrack = args.train_backtrack
+    init_special_tokens = args.init_special_tokens
     
     if train_backtrack and not init_special_tokens:
         logger.warning(

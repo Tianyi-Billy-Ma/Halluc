@@ -29,6 +29,16 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
     Returns:
         Patched TrainArguments (same object, modified in place)
     """
+    train_backtrack = getattr(train_args, "train_backtrack", False):
+    init_special_tokens = getattr(args, "init_special_tokens", False)
+    
+    if train_backtrack and not init_special_tokens:
+        logger.warning(
+            "train_backtrack is True but init_special_tokens is False. "
+            "Forcing init_special_tokens to True."
+        )
+        args.init_special_tokens = True 
+ 
     if args.init_special_tokens:
         template = args.template.lower() if args.template else ""
 
@@ -51,6 +61,10 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
                 args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
                 args.backtrack_token = "<|reserved_special_token_0|>"
             # qwen3 can use <|BACKTRACK|> directly, no replace needed
+    else:
+        args.replace_text = None 
+        args.new_special_tokens_config = None
+        args.backtrack_token = ""
 
     # Patch reset_position_ids
     if getattr(args, "reset_position_ids", False) and not getattr(

@@ -10,5 +10,13 @@ ADAPTER_NAME_OR_PATH="/users/tma2/Projects/Halluc/outputs/llama-3.2-1b/gsm8k/sft
 TOKENIZER_NAME_OR_PATH="meta-llama/Llama-3.2-1b"
 
 
-accelerate launch -m llmhalluc.run_eval \
-    --config ./configs/llmhalluc/backtrack_sft.yaml 
+# accelerate launch -m llmhalluc.run_eval \
+#     --config ./configs/llmhalluc/backtrack_sft.yaml 
+
+accelerate launch -m lm_eval \
+    --model_args pretrained=${MODEL_NAME_OR_PATH} \
+    --tasks bigbench_strategyqa_generate_until \
+    --include_path ./configs/lm_eval/tasks \
+    --log_samples \
+    --wandb_args name=llama-3.2-1b_vanilla_strategyqa,project=Halluc
+    

@@ -8,11 +8,9 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --gpus-per-node=4
 #SBATCH --gpu-bind=closest
-#SBATCH --exclusive
 #SBATCH --no-requeue
 #SBATCH -t 04:00:00
-#SBATCH -e ./logs/slurm-%j.err
-#SBATCH -o ./logs/slurm-%j.out
+#SBATCH -o ./logs/slurm-%j.log
 #SBATCH --mail-user=tma2@nd.edu
 #SBATCH --mail-type=BEGIN,END
 

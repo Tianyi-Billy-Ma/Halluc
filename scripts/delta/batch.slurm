@@ -13,8 +13,7 @@
 #SBATCH --exclusive  # dedicated node for this job
 #SBATCH --no-requeue
 #SBATCH -t 24:00:00
-#SBATCH -e ./logs/slurm-%j.err
-#SBATCH -o ./logs/slurm-%j.out
+#SBATCH -o ./logs/slurm-%j.log
 #SBATCH --mail-user=tma2@nd.edu
 #SBATCH --mail-type="BEGIN,END"
 

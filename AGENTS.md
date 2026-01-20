@@ -164,3 +164,12 @@ python -m llmhalluc.run_exp --config configs/llmhalluc/e2e.yaml
 - **Cluster scripts reference `./bash/`**: May need path fixes to `./scripts/sys/`
 - **Constants**: `llmhalluc/extras/constant.py` is single source of truth for special tokens, paths
 - **Model-specific tokens**: Llama3 uses `<|reserved_special_token_0|>`, Qwen3 uses `<|BACKTRACK|>`
+
+
+## AGENTS
+You have full access to the `docs/agents/` directory which contains documentation and notes that might related to your tasks. 
+Feel free to explore the files within that directory to gather the information you need.
+
+### Memories 
+The file `docs/agents/memories.md` contains important memories that you should be aware of.
+When the user ask you to memnorize something, please store that information in the `docs/agents/memories.md` file for future reference.

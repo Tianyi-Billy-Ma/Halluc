@@ -20,5 +20,5 @@ cd ~/Halluc
 source ./scripts/delta/bashrc.sh
 conda activate llmhalluc
 
-accelerate launch -m llmhalluc.run_train --config configs/llmhalluc/sft.yaml
+# accelerate launch -m llmhalluc.run_train --config configs/llmhalluc/sft.yaml
 

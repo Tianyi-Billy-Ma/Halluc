@@ -22,6 +22,84 @@ from .train_args import TrainArguments
 logger = logging.getLogger(__name__)
 
 
+def print_config(
+    hf_args: SFTArguments | DPOArguments | GRPOArguments,
+    eval_args: EvaluationArguments,
+) -> None:
+    """Print key training configuration for visibility.
+
+    Uses direct attribute access (args.xxx) to ensure we catch missing arguments
+    early rather than silently using default values from getattr.
+
+    Args:
+        hf_args: HuggingFace training arguments (SFT, DPO, or GRPO)
+        eval_args: Evaluation arguments
+    """
+    logger.info("=" * 60)
+    logger.info("Training Configuration Summary")
+    logger.info("=" * 60)
+
+    # 1. Model name
+    logger.info(f"Model: {hf_args.model_name_or_path}")
+
+    # 2. Finetuning type and LoRA config
+    finetuning_type = hf_args.finetuning_type
+    if finetuning_type in ["lora", "qlora"]:
+        lora_info = (
+            f"rank={hf_args.lora_rank}, "
+            f"alpha={hf_args.lora_alpha}, "
+            f"dropout={hf_args.lora_dropout}, "
+            f"target={hf_args.lora_target}"
+        )
+        if finetuning_type == "qlora":
+            lora_info += f", 4bit={hf_args.load_in_4bit}"
+        logger.info(f"Finetuning: {finetuning_type} ({lora_info})")
+    else:
+        logger.info(f"Finetuning: {finetuning_type}")
+
+    # 3. Output path
+    logger.info(f"Output: {hf_args.output_dir}")
+
+    # 4. Backtrack token configuration
+    if hf_args.train_backtrack:
+        logger.info(
+            f"Backtrack: ENABLED (token={hf_args.backtrack_token}, "
+            f"init_special_tokens={hf_args.init_special_tokens})"
+        )
+    else:
+        logger.info("Backtrack: DISABLED")
+
+    # 5. Replace text
+    if hf_args.replace_text:
+        logger.info(f"Replace text: {hf_args.replace_text}")
+
+    # 6. Training and eval datasets
+    logger.info(f"Train dataset: {hf_args.dataset}")
+    eval_dataset = hf_args.eval_dataset
+    if eval_dataset:
+        logger.info(f"Eval dataset: {eval_dataset}")
+    else:
+        logger.info("Eval dataset: None")
+
+    # 7. Evaluation task configuration
+    logger.info(f"Eval tasks: {eval_args.tasks} (model={eval_args.model})")
+
+    # 8. Early stopping
+    if hf_args.early_stopping:
+        logger.info(
+            f"Early stopping: ENABLED (patience={hf_args.early_stopping_patience}, "
+            f"threshold={hf_args.early_stopping_threshold})"
+        )
+    else:
+        logger.info("Early stopping: DISABLED")
+
+    # 9. Masked SFT relevant (only when train_backtrack is enabled)
+    if hf_args.train_backtrack:
+        logger.info(f"Masked SFT: reset_position_ids={hf_args.reset_position_ids}")
+
+    logger.info("=" * 60)
+
+
 def parse_config_arg(
     args: list[str],
     default_config_path: Path,
@@ -407,6 +485,10 @@ def hf_cfg_setup(
         raise ValueError(f"Unsupported stage: {stage}")
 
     setup_dict.args.hf_args = hf_args
+
+    # Print configuration summary for visibility
+    print_config(hf_args, setup_dict.args.eval_args)
+
     return setup_dict
 
 

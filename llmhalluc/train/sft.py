@@ -52,8 +52,8 @@ class BacktrackSFTExecutor(SFTExecutor):
         # Create custom collator for backtrack masking
         collator = BacktrackMaskingCollator(
             tokenizer=self.tokenizer,
-            backtrack_token=getattr(self.args, "backtrack_token", "<|BACKTRACK|>"),
-            reset_position_ids=getattr(self.args, "reset_position_ids", False),
+            backtrack_token=self.args.backtrack_token,
+            reset_position_ids=self.args.reset_position_ids,
         )
 
         self.trainer = trainer_class(

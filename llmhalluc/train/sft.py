@@ -4,7 +4,7 @@ import logging
 
 from trl import SFTTrainer
 
-from llmhalluc.data.collator import BacktrackMaskedCollator
+from llmhalluc.data.collator import BacktrackMaskingCollator
 from llmhalluc.hparams.ft_args import SFTArguments
 
 from .base import BaseExecutor
@@ -50,7 +50,7 @@ class BacktrackSFTExecutor(SFTExecutor):
         callbacks = get_callbacks(self.args)
 
         # Create custom collator for backtrack masking
-        collator = BacktrackMaskedCollator(
+        collator = BacktrackMaskingCollator(
             tokenizer=self.tokenizer,
             backtrack_token=getattr(self.args, "backtrack_token", "<|BACKTRACK|>"),
             reset_position_ids=getattr(self.args, "reset_position_ids", False),

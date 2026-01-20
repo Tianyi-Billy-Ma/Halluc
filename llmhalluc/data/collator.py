@@ -9,7 +9,7 @@ from transformers.data.data_collator import DataCollatorMixin
 
 
 @dataclass
-class BacktrackMaskedCollator(DataCollatorMixin):
+class BacktrackMaskingCollator(DataCollatorMixin):
     """
     Data collator that masks error tokens from loss computation.
 

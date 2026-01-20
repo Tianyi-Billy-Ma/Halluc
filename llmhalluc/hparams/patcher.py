@@ -119,6 +119,7 @@ def patch_eval_config(
         args._update_model_args()
 
         if additional_args.report_to == "wandb":
+            args.report_to = "wandb"
             args.wandb_project = additional_args.wandb_project
             args._update_wandb_args()
 

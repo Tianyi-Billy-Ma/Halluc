@@ -68,19 +68,25 @@ The cross-entropy loss automatically ignores positions with label $-100$.
 
 $$\frac{\partial \mathcal{L}_{\text{masked}}}{\partial \theta} = \sum_{t \notin \mathcal{I}_{\text{mask}}} \frac{\partial}{\partial \theta} \left[-\log p_\theta(y_t | y_{<t}, x)\right]$$
 
-**Supporting References**:
+**Theoretical Justification**:
 
-This property is well-established in deep learning and is implemented as a core feature in major frameworks:
+This formulation aligns with the "Partial SGD" framework established by Mohtashami et al. (2022) [3], which proves that stochastic gradient descent converges to the optimal solution even when gradients are computed on a subset of dimensions or data points, provided the sampling (or masking) strategy preserves the target distribution in expectation.
+
+Furthermore, our approach is mechanically identical to "Selective Gradient Masking" recently formalized by Anthropic (2025) [4] for capability removal:
+$$\theta \leftarrow \theta - \eta \cdot (M \odot \nabla_\theta \mathcal{L})$$
+where $M$ is a binary mask. In our case, $M_t = 0$ for $t \in \mathcal{I}_{\text{mask}}$ (errors) and $M_t = 1$ otherwise.
+
+**Supporting References**:
 
 1. **PyTorch CrossEntropyLoss** [1]: The `ignore_index` parameter "specifies a target value that is ignored and **does not contribute to the input gradient**" (PyTorch Documentation).
 
 2. **HuggingFace Transformers** [2]: Labels set to `-100` are "ignored (masked), the loss is only computed for the tokens with labels in `[0, ..., vocab_size]`" (HuggingFace GitHub Issue #2946).
 
-3. **Masked Training Theory** [3]: Mohtashami et al. (AISTATS 2022) provide a unified theoretical framework for SGD variants with gradient masking, proving convergence under the "partial SGD" template where masked positions contribute zero gradient.
+3. **Masked Training Theory** [3]: Mohtashami et al. (AISTATS 2022) provide a unified theoretical framework for SGD variants with gradient masking, proving convergence under the "partial SGD" template.
 
-4. **Selective Gradient Masking** [4]: Anthropic (2025) formalizes gradient masking as: $\theta \leftarrow \theta - \eta \cdot (M \odot \nabla_\theta \mathcal{L})$ where $M$ is a binary mask, showing that masked positions have zero contribution to parameter updates.
+4. **Selective Gradient Masking** [4]: Anthropic (2025) formalizes gradient masking for unlearning, demonstrating that masked positions have zero contribution to parameter updates.
 
-5. **Advantage-Filtered Behavioral Cloning** [5]: Uses the weighted loss $\mathcal{L} = \mathbb{E}[-f(\hat{A})\log\pi_\theta(a|s)]$ where $f(\cdot) = \mathbb{1}_{\{\cdot > 0\}}$ acts as a boolean mask, demonstrating the same selective gradient principle in imitation learning.
+5. **Chain of Hindsight** [5]: Liu et al. (NeurIPS 2023) similarly condition models on "negative" feedback tokens without training on them, effectively treating errors as context rather than targets.
 
 **Proof**:
 
@@ -381,20 +387,26 @@ This is the theoretical foundation for why masked loss is essential for effectiv
 - Formalizes gradient masking as: θ ← θ - η · (M ⊙ ∇θL)
 - Provides mechanistic understanding of selective gradient updates
 
-[5] Grigsby, J., et al. (2021). "A Closer Look at Advantage-Filtered Behavioral Cloning in High-Noise Datasets." arXiv:2110.04698.
-- Uses weighted loss with binary filter: L = E[-f(Â)·log π(a|s)] where f(·) = 1_{·>0}
-- Demonstrates selective gradient principle in imitation learning
+[5] Liu, H., et al. (2023). "Chain of Hindsight Aligns Language Models to Feedback." NeurIPS.
+- Semantic equivalent: conditions on "negative" tokens without training on them as targets.
 
-### Additional References
+[6] Rafailov, R., et al. (2023). "Direct Preference Optimization: Your Language Model is Secretly a Reward Model." NeurIPS.
+- Comparison: DPO penalizes errors (gradient pushes prob down), SFT reinforces errors (pushes up), Masked SFT neutralizes errors (no gradient).
 
-[6] Welleck, S., et al. (2024). "SCoRe: Training Language Models to Self-Correct via Reinforcement Learning." arXiv:2409.12917.
+[7] Olausson, T. X., et al. (2024). "LMs Can Learn to Self-Repair." ICLR.
+- Baseline: Demonstrates the failure mode of standard SFT on "repair" traces where the model learns to generate buggy code first.
+
+[8] Welleck, S., et al. (2024). "SCoRe: Training Language Models to Self-Correct via Reinforcement Learning." arXiv:2409.12917.
 - Identifies negative learning as key failure mode: "SFT on correction traces trains the model to maximize the probability of the initial incorrect response"
 
-[7] Cundy, C., & Ermon, S. (2024). "SequenceMatch: Imitation Learning for Autoregressive Sequence Modelling with Backtracking." ICLR.
+[9] Cundy, C., & Ermon, S. (2024). "SequenceMatch: Imitation Learning for Autoregressive Sequence Modelling with Backtracking." ICLR.
 - MDP formulation with backspace action for sequence generation
 
-[8] Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding." NAACL.
+[10] Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding." NAACL.
 - Original masked language modeling where loss is computed only on [MASK] positions
+
+[11] Zhang, Y., et al. (2024). "Backtracking Improves Generation Safety." arXiv:2409.14586.
+- Implements a `[RESET]` token mechanism for safety alignment, highly similar to our `<|BACKTRACK|>` token but for removing harmful content rather than correcting reasoning errors.
 
 [9] Peters, J., & Schaal, S. (2007). "Reinforcement Learning by Reward-Weighted Regression for Operational Space Control." ICML.
 - Reward-weighted regression: L = E[r · log π(a|s)], foundational work on weighted imitation

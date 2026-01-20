@@ -290,6 +290,7 @@ class BacktrackRewardFunction(BaseRewardFunction):
         - Unnecessary backtracks (when initial answer was correct)
         - Failed corrections (backtracking without improvement)
         - Excessive backtracks (beyond reasonable threshold)
+        - Stuttering (early backtracks on short prefixes)
 
         Args:
             completion_ids: Generated token IDs (with backtrack tokens)
@@ -298,7 +299,8 @@ class BacktrackRewardFunction(BaseRewardFunction):
         Returns:
             Reward (can be positive or negative)
         """
-        num_backtracks = completion_ids.count(self.backtrack_token_id)
+        backtrack_token_id = self.backtrack_token_id
+        num_backtracks = completion_ids.count(backtrack_token_id)
 
         # Hard constraint: excessive backtracks get severe penalty
         if num_backtracks > self.max_backtracks:
@@ -314,32 +316,49 @@ class BacktrackRewardFunction(BaseRewardFunction):
                 return -0.1  # Should have backtracked: small penalty
 
         # Evaluate backtracking impact
-        initial_ids = _get_pre_backtrack_sequence(
-            completion_ids, self.backtrack_token_id
-        )
-        final_ids = _apply_backtracking(completion_ids, self.backtrack_token_id)
+        # 1. Get Initial State (Before first backtrack)
+        try:
+            first_bt_idx = completion_ids.index(backtrack_token_id)
+            initial_ids = completion_ids[:first_bt_idx]
+        except ValueError:
+            initial_ids = completion_ids
 
-        # Compute improvement
-        initial_acc = _compute_sequence_accuracy(initial_ids, ground_truth_ids)
-        final_acc = _compute_sequence_accuracy(final_ids, ground_truth_ids)
+        # 2. Get Final State (Semantic Result)
+        final_ids = _apply_backtracking(completion_ids, backtrack_token_id)
+
+        # 3. Resolve Ground Truth (in case it contains backtracks)
+        gt_final = _apply_backtracking(ground_truth_ids, backtrack_token_id)
+
+        # 4. Compute Accuracies
+        initial_acc = _compute_sequence_accuracy(initial_ids, gt_final)
+        final_acc = _compute_sequence_accuracy(final_ids, gt_final)
         improvement = final_acc - initial_acc
 
         reward = 0.0
 
-        # 1. Correction success bonus
+        # Check validity (Length Constraint to prevent stuttering)
+        # Only reward improvement if the initial attempt was "substantial"
+        # We use a heuristic: initial_len > 0.5 * gt_len
+        is_valid_attempt = len(initial_ids) > 0.5 * len(gt_final)
+
+        # 1. Correction success bonus (Only if valid attempt)
         if improvement > 0:
-            reward += self.correction_bonus * improvement
+            if is_valid_attempt:
+                reward += self.correction_bonus * improvement
+                # Efficiency bonus (fewer backtracks preferred when successful)
+                efficiency = 1.0 / (num_backtracks**0.5)
+                reward += self.efficiency_weight * efficiency
+            else:
+                # Stuttering case: Improvement is fake (from incomplete -> complete)
+                # Treat as unnecessary/noise
+                reward -= self.unnecessary_penalty * num_backtracks
 
-            # 2. Efficiency bonus (fewer backtracks preferred when successful)
-            efficiency = 1.0 / (num_backtracks**0.5)
-            reward += self.efficiency_weight * efficiency
-
-        # 3. Unnecessary backtrack penalty
+        # 2. Unnecessary backtrack penalty
         elif initial_acc == 1.0:
             # Initial answer was correct, shouldn't have backtracked
             reward -= self.unnecessary_penalty * num_backtracks
 
-        # 4. Failed correction penalty
+        # 3. Failed correction penalty
         elif improvement <= 0:
             # Backtracked but didn't improve (or made it worse)
             reward -= self.failed_correction_penalty

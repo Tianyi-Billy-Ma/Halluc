@@ -18,5 +18,6 @@ accelerate launch -m lm_eval \
     --tasks bigbench_strategyqa_generate_until \
     --include_path ./configs/lm_eval/tasks \
     --log_samples \
+    --output_path ./outputs/llama-3.2-1b/strategyqa/vanilla/eval/strategyqa/results.json \
     --wandb_args name=llama-3.2-1b_vanilla_strategyqa,project=Halluc
     

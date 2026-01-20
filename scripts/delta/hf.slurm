@@ -23,5 +23,5 @@ conda activate llmhalluc
 
 
 accelerate launch -m llmhalluc.run_train \
-    --config_file ./configs/llmhalluc/gsm8k/backtrack_sft.yaml \
+    --config ./configs/llmhalluc/gsm8k/backtrack_sft.yaml \
     --model_name_or_path "meta-llama/Llama-3.1-8b" 

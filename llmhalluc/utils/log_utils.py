@@ -2,8 +2,6 @@ import logging
 import os
 from logging import DEBUG, INFO
 
-import torch.distributed as dist
-
 from llmhalluc.utils.sys_utils import is_rank_zero
 
 
@@ -28,6 +26,9 @@ def setup_logging(verbose: bool, rank_zero_only: bool = True) -> None:
     level = DEBUG if verbose else INFO
 
     rank = 0
+    # Lazy import to avoid slow startup
+    import torch.distributed as dist
+
     if dist.is_available() and dist.is_initialized():
         rank = dist.get_rank()
     elif "LOCAL_RANK" in os.environ:

@@ -21,7 +21,7 @@ TOKENIZER_NAME_OR_PATH="meta-llama/Llama-3.2-1b"
 #     --output_path ./outputs/llama-3.2-1b/strategyqa/vanilla/eval/strategyqa/results.json \
 #     --wandb_args name=llama-3.2-1b_vanilla_strategyqa,project=Halluc
     
-accelerate launch -m llmhalluc.run_train \
+accelerate launch -m llmhalluc.run_eval \
     --config ./configs/llmhalluc/gsm8k/masked_sft.yaml \
     --model_name_or_path ${MODEL_NAME_OR_PATH} 
     

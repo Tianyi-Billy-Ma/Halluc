@@ -32,7 +32,7 @@ We validate our method on complex reasoning benchmarks, demonstrating that intri
 % [yao2023tree] Yao, S., et al. (2023). Tree of Thoughts: Deliberate Problem Solving with Large Language Models. NeurIPS 2023.
 % [besta2024graph] Besta, M., et al. (2024). Graph of Thoughts: Solving Elaborate Problems with Large Language Models. AAAI 2024.
 % [huang2023cannot] Huang, J., et al. (2023). Large Language Models Cannot Self-Correct Reasoning Yet. ICLR 2024.
-% [kamoi2024correct] Kamoi, R., et al. (2024). When Can LLMs Actually Correct Their Own Mistakes? A Critical Survey. Transactions of the ACL.
+% [kamoi2024correct] Kamoi, R., et al. (2024). . Transactions of the ACL.
 % [zhang2025darkside] Zhang, et al. (2025). Understanding the Dark Side of LLMs' Intrinsic Self-Correction.
 % [chen2024sequencematch] Chen, et al. (2024). SequenceMatch: Imitation Learning for Autoregressive Sequence Modeling with Backtracking. ICLR 2024.
 % [zhang2025stepback] Zhang, et al. (2025). Step Back to Leap Forward: Self-Backtracking for Boosting Reasoning of Language Models.

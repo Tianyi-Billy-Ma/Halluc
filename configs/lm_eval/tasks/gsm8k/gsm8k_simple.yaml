@@ -41,7 +41,7 @@ generation_kwargs:
     - "<|im_end|>"
   do_sample: false
   temperature: 0.0
-  max_gen_tokens: 2048
+  max_gen_toks: 2048
 
 repeats: 1
 num_fewshot: 5

@@ -27,7 +27,7 @@ export TRITON_CACHE_DIR=/tmp/$USER/triton
 mkdir -p $TRITON_CACHE_DIR
 export WANDB_SERVICE_WAIT=300
 
-accelerate launch -m llmhalluc.run_train \
+accelerate launch -m llmhalluc.run_exp \
     --config ./configs/llmhalluc/gsm8k/masked_sft.yaml \
-    --model_name_or_path "meta-llama/Llama-3.1-8b" \
-    --report_to none 
+    --model_name_or_path "meta-llama/Llama-3.1-8b"
+

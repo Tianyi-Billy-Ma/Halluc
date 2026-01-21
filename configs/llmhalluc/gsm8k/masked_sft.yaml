@@ -18,8 +18,8 @@ report_to: wandb
 wandb_project: Halluc
 
 # Dataset
-dataset: gsm8k_masked_sft_train
-eval_dataset: gsm8k_masked_sft_eval
+dataset: gsm8k_bt_masked_sft_train
+eval_dataset: gsm8k_bt_masked_sft_eval
 converter: sft
 
 # Training

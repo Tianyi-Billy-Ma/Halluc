@@ -20,12 +20,6 @@ cd ~/Halluc
 source ./scripts/delta/bashrc.sh
 conda activate llmhalluc
 
-# Fix WandB and Triton NFS issues
-export WANDB_DIR=/tmp/$USER/wandb
-mkdir -p $WANDB_DIR
-export TRITON_CACHE_DIR=/tmp/$USER/triton
-mkdir -p $TRITON_CACHE_DIR
-export WANDB_SERVICE_WAIT=300
 
 accelerate launch -m llmhalluc.run_exp \
     --config ./configs/llmhalluc/gsm8k/masked_sft.yaml \

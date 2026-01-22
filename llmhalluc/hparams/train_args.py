@@ -70,7 +70,7 @@ class TrainArguments(BaseArguments):
     num_train_epochs: float = 3
     lr_scheduler_type: str = "cosine"
     warmup_ratio: float = 0.1
-    fp16: bool = True
+    fp16: bool = False
     bf16: bool = False
     ddp_timeout: int = 180000000
     resume_from_checkpoint: str | None = None

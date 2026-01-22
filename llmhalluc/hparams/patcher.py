@@ -89,9 +89,11 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
                 logger.info(f"Auto-detected checkpoint: {last_checkpoint}")
                 args.resume_from_checkpoint = last_checkpoint
             else:
-                logger.info(
-                    f"Resume requested but no checkpoint found in {args.output_dir}. Starting from scratch."
+                raise ValueError(
+                    f"Resume requested but no checkpoint found in {args.output_dir}. Cannot resume training."
                 )
+        else:
+            raise ValueError("resume=True but no output_dir specified. Cannot resume.")
 
     return args
 

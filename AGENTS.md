@@ -172,4 +172,4 @@ Feel free to explore the files within that directory to gather the information y
 
 ### Memories 
 The file `docs/agents/memories.md` contains important memories that you should be aware of.
-When the user ask you to memnorize something, please store that information in the `docs/agents/memories.md` file for future reference.
+When the user ask you to memorize something, please store that information in the `docs/agents/memories.md` file for future reference.

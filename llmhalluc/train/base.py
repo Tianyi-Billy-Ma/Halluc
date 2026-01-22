@@ -294,7 +294,16 @@ class BaseExecutor(ABC):
         )
 
     def fit(self):
-        self.train_result = self.trainer.train()
+        """Train the model with optional checkpoint resumption.
+
+        resume_from_checkpoint is verified and patched (str or None) in parser.py.
+        """
+        resume_checkpoint = self.args.resume_from_checkpoint
+
+        if resume_checkpoint:
+            logger.info(f"Resuming training from checkpoint: {resume_checkpoint}")
+
+        self.train_result = self.trainer.train(resume_from_checkpoint=resume_checkpoint)
         if self.save_model:
             self.trainer.save_model()
         return self.train_result

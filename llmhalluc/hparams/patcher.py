@@ -5,6 +5,7 @@ from pathlib import Path
 
 from easydict import EasyDict
 from transformers import HfArgumentParser
+from transformers.trainer_utils import get_last_checkpoint
 
 from llmhalluc.extras.constant import SPECIAL_TOKEN_MAPPING
 
@@ -31,14 +32,14 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
     """
     train_backtrack = args.train_backtrack
     init_special_tokens = args.init_special_tokens
-    
+
     if train_backtrack and not init_special_tokens:
         logger.warning(
             "train_backtrack is True but init_special_tokens is False. "
             "Forcing init_special_tokens to True."
         )
-        args.init_special_tokens = True 
- 
+        args.init_special_tokens = True
+
     if args.init_special_tokens:
         template = args.template.lower() if args.template else ""
 
@@ -62,7 +63,7 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
                 args.backtrack_token = "<|reserved_special_token_0|>"
             # qwen3 can use <|BACKTRACK|> directly, no replace needed
     else:
-        args.replace_text = None 
+        args.replace_text = None
         args.new_special_tokens_config = None
         args.backtrack_token = ""
 
@@ -75,6 +76,25 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
             "Forcing reset_position_ids to False."
         )
         args.reset_position_ids = False
+
+    # Patch resume_from_checkpoint
+    if args.resume_from_checkpoint is True:
+        # Auto-detect latest checkpoint
+        if not args.output_dir:
+            logger.warning(
+                "resume_from_checkpoint=True but no output_dir. Disabling resume."
+            )
+            args.resume_from_checkpoint = None
+        else:
+            last_checkpoint = get_last_checkpoint(args.output_dir)
+            if last_checkpoint is None:
+                logger.info(
+                    f"No checkpoint found in {args.output_dir}. Starting from scratch."
+                )
+                args.resume_from_checkpoint = None
+            else:
+                logger.info(f"Auto-detected checkpoint: {last_checkpoint}")
+                args.resume_from_checkpoint = last_checkpoint
 
     return args
 

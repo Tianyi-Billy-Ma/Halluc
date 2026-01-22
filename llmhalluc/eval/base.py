@@ -62,6 +62,14 @@ def run_eval(config_path: str):
 
     samples = results.get("samples") if log_samples else None
     evaluation_tracker.save_results_aggregated(results=results, samples=samples)
+
+    # Save samples to separate files (one per task)
+    if log_samples and samples:
+        for task_name in results.get("configs", {}).keys():
+            if task_name in samples:
+                evaluation_tracker.save_results_samples(
+                    task_name=task_name, samples=samples[task_name]
+                )
     # Log to wandb after evaluation
     if wandb_logger and results:
         try:

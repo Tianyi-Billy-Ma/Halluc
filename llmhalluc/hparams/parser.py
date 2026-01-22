@@ -60,6 +60,12 @@ def print_config(
     # 3. Output path
     logger.info(f"Output: {hf_args.output_dir}")
 
+    # 3b. Resume capability
+    if hf_args.resume_from_checkpoint:
+        logger.info(f"Resume: ENABLED (checkpoint={hf_args.resume_from_checkpoint})")
+    else:
+        logger.info("Resume: DISABLED")
+
     # 4. Backtrack token configuration
     if hf_args.train_backtrack:
         logger.info(
@@ -336,6 +342,28 @@ def verify_train_args(args: TrainArguments) -> None:
             "reset_position_ids=True requires train_backtrack=True. "
             "Please enable train_backtrack or disable reset_position_ids."
         )
+
+    # 6. Resume Check
+    if args.resume_from_checkpoint:
+        # Patcher should have resolved True -> path or None
+        # So here it should be a string path
+        if isinstance(args.resume_from_checkpoint, str):
+            path = resolve_path(args.resume_from_checkpoint)
+            if not path.exists():
+                raise ValueError(f"resume_from_checkpoint path not found: {path}")
+
+            # GRPO check
+            # Check stage instead of finetuning_type as stage determines the trainer (GRPO)
+            if getattr(args, "stage", "") == "grpo":
+                raise ValueError(
+                    "GRPO resume_from_checkpoint is not supported by upstream TRL (Issue #2657). "
+                    "Please disable resume_from_checkpoint for GRPO."
+                )
+        elif args.resume_from_checkpoint is True:
+            # Should not happen if patcher works, but defensive coding
+            raise ValueError(
+                "resume_from_checkpoint=True should have been resolved by patcher."
+            )
 
 
 def e2e_cfg_setup(

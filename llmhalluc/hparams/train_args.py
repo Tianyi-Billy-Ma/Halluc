@@ -73,7 +73,7 @@ class TrainArguments(BaseArguments):
     fp16: bool = True
     bf16: bool = False
     ddp_timeout: int = 180000000
-    resume_from_checkpoint: str | None = None
+    resume_from_checkpoint: str | bool | None = None
     save_total_limit: int = 1
     load_best_model_at_end: bool = True
     metric_for_best_model: str = "loss"

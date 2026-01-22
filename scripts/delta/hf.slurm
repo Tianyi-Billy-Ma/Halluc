@@ -24,5 +24,6 @@ conda activate llmhalluc
 accelerate launch -m llmhalluc.run_exp \
     --config ./configs/llmhalluc/gsm8k/masked_sft.yaml \
     --model_name_or_path "meta-llama/Llama-3.1-8b" \
+    --report_to "" \
     --resume
 

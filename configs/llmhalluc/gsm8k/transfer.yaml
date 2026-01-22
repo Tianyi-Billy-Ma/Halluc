@@ -1,0 +1,47 @@
+# Experiment
+run_name: gsm8k_transfer
+
+# model_name_or_path: meta-llama/Llama-3.2-1B
+model_name_or_path: meta-llama/Llama-3.2-1B
+# model_name_or_path: meta-llama/Llama-3.1-8B
+template: llama3
+# template: llama3_bt
+stage: sft
+finetuning_type: lora
+bf16: true
+
+# Logging
+report_to: wandb
+
+# Dataset
+# dataset: gsm8k_train
+# eval_dataset: gsm8k_eval
+
+dataset: "metamath_train"
+eval_dataset: "gsm8k_eval"
+converter: "sft"
+
+# Evaluation
+model: hf
+tasks: gsm8k_simple
+eval_mode: cli
+
+wandb_project: Halluc
+
+# Constants
+seed: 3
+ddp: 1
+
+deepspeed: configs/deepspeed/ds_z0_config.json
+
+init_special_tokens: false
+
+# SFT
+compute_only_loss: false
+
+# PPO
+reward_model: "backtrack"
+reward_model_type: "custom"
+
+early_stopping: true
+load_from_cache_file: false

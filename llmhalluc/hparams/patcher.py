@@ -78,23 +78,20 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
         args.reset_position_ids = False
 
     # Patch resume_from_checkpoint
-    if args.resume_from_checkpoint is True:
-        # Auto-detect latest checkpoint
-        if not args.output_dir:
-            logger.warning(
-                "resume_from_checkpoint=True but no output_dir. Disabling resume."
+    if args.resume:
+        if args.resume_from_checkpoint:
+            logger.info(
+                f"Resume requested with explicit path: {args.resume_from_checkpoint}"
             )
-            args.resume_from_checkpoint = None
-        else:
+        elif args.output_dir:
             last_checkpoint = get_last_checkpoint(args.output_dir)
-            if last_checkpoint is None:
-                logger.info(
-                    f"No checkpoint found in {args.output_dir}. Starting from scratch."
-                )
-                args.resume_from_checkpoint = None
-            else:
+            if last_checkpoint:
                 logger.info(f"Auto-detected checkpoint: {last_checkpoint}")
                 args.resume_from_checkpoint = last_checkpoint
+            else:
+                logger.info(
+                    f"Resume requested but no checkpoint found in {args.output_dir}. Starting from scratch."
+                )
 
     return args
 

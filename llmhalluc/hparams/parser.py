@@ -359,11 +359,6 @@ def verify_train_args(args: TrainArguments) -> None:
                     "GRPO resume_from_checkpoint is not supported by upstream TRL (Issue #2657). "
                     "Please disable resume_from_checkpoint for GRPO."
                 )
-        elif args.resume_from_checkpoint is True:
-            # Should not happen if patcher works, but defensive coding
-            raise ValueError(
-                "resume_from_checkpoint=True should have been resolved by patcher."
-            )
 
 
 def e2e_cfg_setup(

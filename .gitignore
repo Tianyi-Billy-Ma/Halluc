@@ -210,4 +210,4 @@ __marimo__/
 **/logs/*
 **/outputs
 uv.lock
-.sisyphus/
+.sisyphus/repos/

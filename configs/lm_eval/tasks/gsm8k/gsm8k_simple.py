@@ -14,7 +14,9 @@ ROUGE_SCORER = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeLsum"])
 
 def extract_answer_strict(text):
     """
-    Extract answer using strict GSM8K format: #### <number>
+    Extract answer using strict format: 'The answer is: <number>'
+
+    Also supports legacy '#### <number>' format for backward compatibility.
 
     Args:
         text: Model output text
@@ -22,9 +24,15 @@ def extract_answer_strict(text):
     Returns:
         Extracted number as string, or empty string if not found
     """
-    match = re.search(r"####\s*(-?[0-9\.\,]+)", text)
+    # Primary: Match "The answer is: <number>" format
+    match = re.search(r"[Tt]he answer is[:\s]+(-?[$0-9\.\,]+)", text)
     if match:
         # Remove commas and dollar signs for normalization
+        return match.group(1).replace(",", "").replace("$", "").strip()
+
+    # Fallback: Match legacy "#### <number>" format
+    match = re.search(r"####\s*(-?[0-9\.\,]+)", text)
+    if match:
         return match.group(1).replace(",", "").replace("$", "").strip()
     return ""
 
@@ -76,7 +84,10 @@ def normalize_answer(answer_str):
     normalized = normalized.replace(",", "")
     # 2. Remove dollar signs
     normalized = normalized.replace("$", "")
-    # 3. Remove everything before "#### " (handles ground truth format)
+    # 3. Remove everything before answer marker (handles both formats)
+    # Support "The answer is:" format
+    normalized = re.sub(r"(?si).*the answer is[:\s]+", "", normalized)
+    # Support legacy "#### " format (for ground truth)
     normalized = re.sub(r"(?s).*#### ", "", normalized)
     # 4. Remove trailing period
     normalized = re.sub(r"\.$", "", normalized)

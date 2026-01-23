@@ -57,10 +57,10 @@ def patch_train_config(args: TrainArguments) -> TrainArguments:
 
         # Auto-set replace_text if not provided (for dataset preprocessing)
         # LLaMA3 uses reserved token, so we need to map <|BACKTRACK|> to it
-        if not args.replace_text:
-            if "llama3" in template:
-                args.replace_text = {"<|BACKTRACK|>": "<|reserved_special_token_0|>"}
-                args.backtrack_token = "<|reserved_special_token_0|>"
+        if "llama3" in template:
+            args.replace_text = args.replace_text or {}
+            args.replace_text["<|BACKTRACK|>"] = "<|reserved_special_token_0|>"
+            args.backtrack_token = "<|reserved_special_token_0|>"
             # qwen3 can use <|BACKTRACK|> directly, no replace needed
     else:
         args.replace_text = None

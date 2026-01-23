@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 from transformers import PreTrainedTokenizer
 
-from ..prompts.MathPrompt import MATH_INSTRUCTION
+from ..prompts import PROMPT_REGISTRY, get_prompt
 from ..utils.alg_utils import cs_alg
 from .backtrack import BACKTRACK_TOKEN
 from .base import DatasetConverter
@@ -67,6 +67,30 @@ class GSM8KDatasetConverter(DatasetConverter):
         self.query_key = self.query or self.query_key
         self.response_key = self.response or self.response_key
 
+    def _get_prompt(self, example: dict[str, Any]) -> str:
+        """Get prompt from dataset column or fall back to registered prompt.
+
+        Args:
+            example: Input example dict.
+
+        Returns:
+            Prompt string - either from dataset column or registered prompt.
+        """
+        # First, try to get prompt from dataset column
+        if self.prompt_key in example and example[self.prompt_key]:
+            return example[self.prompt_key]
+
+        # Fall back to registered prompt (prompt_key is used as registry key)
+        if self.prompt_key in PROMPT_REGISTRY:
+            return get_prompt(self.prompt_key)
+
+        # Default fallback to "math" prompt
+        logger.warning(
+            f"Prompt key '{self.prompt_key}' not found in dataset or registry. "
+            f"Using default 'math' prompt."
+        )
+        return get_prompt("math")
+
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         """Convert an example to backtrack format.
 
@@ -77,11 +101,14 @@ class GSM8KDatasetConverter(DatasetConverter):
             Converted example with backtrack content and modified response.
         """
         # Extract fields using key mapping
-        prompt_content = example.get(self.prompt_key, "")
         query_content = example.get(self.query_key, "")
         response_content = example.get(self.response_key, "")
 
-        prompt_content = query_content + "\n" + prompt_content
+        # Get prompt from dataset or registry
+        prompt_instruction = self._get_prompt(example)
+
+        # Combine query with prompt instruction
+        prompt_content = query_content + "\n" + prompt_instruction.strip()
 
         return {
             "prompt": prompt_content,
@@ -96,7 +123,7 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
     max_tokens: int = 100
     split: str = "train"
     key_mapping: dict[str, str] | None = None
-    prompt: str = MATH_INSTRUCTION
+    prompt: str = ""  # Will be resolved via registry if empty
     backtrack_token: str = BACKTRACK_TOKEN
     backtrack_token_id: int = None
     option: str = "half"  # ["all", "half", "random", "single"]
@@ -111,6 +138,10 @@ class GSM8KSymbolicDatasetConverter(DatasetConverter):
                 "original_query": "original_question",
                 "original_response": "original_answer",
             }
+
+        # Resolve prompt from registry if not provided
+        if not self.prompt:
+            self.prompt = get_prompt("math")
 
         if self.tokenizer is not None:
             backtrack_token_ids = self.tokenizer.encode(self.backtrack_token)

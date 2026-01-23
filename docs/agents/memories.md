@@ -21,3 +21,11 @@ When you need to add a new argument relevant to training:
 - Generate LaTeX content directly in the chat response.
 - Only write code files (`.py`, `.sh`, `.yaml`, `.md`) to the disk.
 - Keep the repository clean of temporary write-ups.
+
+## Script Directory Convention
+
+**Rule**:
+- `llmhalluc/scripts/` — Python runnable scripts (data processing, utilities, etc.)
+- `scripts/` (project root) — Bash scripts and job submission scripts (SLURM, SGE, etc.)
+
+**Why**: Keep the package self-contained. Root `scripts/` is for cluster/system-level automation, not Python logic.

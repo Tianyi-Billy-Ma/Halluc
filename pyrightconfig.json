@@ -1,7 +1,9 @@
 {
-  "venvPath": ".",
-  "venv": ".venv",
+  "pythonPath": "/Users/tianyima/anaconda3/envs/llmhalluc/bin/python",
   "pythonVersion": "3.11",
+  "extraPaths": [
+    "/Users/tianyima/anaconda3/envs/llmhalluc/lib/python3.11/site-packages"
+  ],
   "include": ["llmhalluc"],
   "exclude": ["**/node_modules", "**/__pycache__", ".git", "lm-evaluation-harness"],
   "reportMissingImports": true,

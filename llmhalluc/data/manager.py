@@ -2,7 +2,11 @@ from datasets import Dataset, DatasetDict, load_dataset
 
 from llmhalluc.utils import wrap_converter_with_replace
 
-from .backtrack import BacktrackDatasetConverter, SFTBacktrackDatasetConverter
+from .backtrack import (
+    BacktrackDatasetConverter,
+    RandomBacktrackConverter,
+    SFTBacktrackDatasetConverter,
+)
 from .base import DatasetConverter
 from .dpo import DPODatasetConverter
 from .grpo import GRPODatasetConverter
@@ -17,6 +21,7 @@ from .squad import SquadDatasetConverter
 DATASET_CONVERTERS = {
     "squad": SquadDatasetConverter,
     "backtrack": BacktrackDatasetConverter,
+    "random_backtrack": RandomBacktrackConverter,
     "gsm8k": GSM8KDatasetConverter,
     "gsm8k_symbolic_backtrack": GSM8KSymbolicDatasetConverter,
     "gsm8k_backtrack": GSM8KBacktrackDatasetConverter,

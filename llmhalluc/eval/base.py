@@ -36,7 +36,7 @@ def run_eval(config_path: str):
 
     # Initialize WandbLogger if wandb_args provided
     wandb_logger = None
-    if wandb_args:
+    if wandb_args and is_rank_zero():
         try:
             wandb_logger = WandbLogger(wandb_args)
         except Exception as e:

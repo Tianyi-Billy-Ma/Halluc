@@ -5,9 +5,9 @@ conda activate llmhalluc
 
 
 
-MODEL_NAME_OR_PATH="meta-llama/Llama-3.2-1b"
-ADAPTER_NAME_OR_PATH="/users/tma2/Projects/Halluc/outputs/llama-3.2-1b/gsm8k/sft/lora/train"
-TOKENIZER_NAME_OR_PATH="meta-llama/Llama-3.2-1b"
+MODEL_NAME_OR_PATH="mistralai/Ministral-3-3B-Base-2512"
+ADAPTER_NAME_OR_PATH="/users/tma2/Projects/Halluc/outputs/ministral-3-3b/squad_v2/sft/lora/train"
+TOKENIZER_NAME_OR_PATH="mistralai/Ministral-3-3B-Base-2512"
 
 
 # accelerate launch -m llmhalluc.run_eval \
@@ -26,7 +26,7 @@ TOKENIZER_NAME_OR_PATH="meta-llama/Llama-3.2-1b"
 #     --model_name_or_path ${MODEL_NAME_OR_PATH} 
 
 accelerate launch -m lm_eval \
-    --tasks minerva_math500 \
+    --tasks squadv2 \
     --model_args pretrained=${MODEL_NAME_OR_PATH} \
-    --output_path ./outputs/llama-3.2-1b-cot-minerva_math500_simple \
+    --output_path ./outputs/ministral-3-3b/squadv2/cot/eval/squadv2/ \
     --log_samples

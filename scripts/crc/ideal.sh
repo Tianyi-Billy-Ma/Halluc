@@ -26,7 +26,7 @@ TOKENIZER_NAME_OR_PATH="meta-llama/Llama-3.2-1b"
 #     --model_name_or_path ${MODEL_NAME_OR_PATH} 
 
 accelerate launch -m lm_eval \
-    --tasks hendrycks_math500 \
+    --tasks minerva_math500 \
     --model_args pretrained=${MODEL_NAME_OR_PATH} \
-    --output_path ./outputs/llama3-1b-cot-math500_simple \
+    --output_path ./outputs/llama-3.2-1b-cot-minerva_math500_simple \
     --log_samples

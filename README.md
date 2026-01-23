@@ -1,6 +1,20 @@
-# Halluc
+# Halluc: Non-Monotonic Autoregressive Sequence Modeling
 
-LLM Hallucination Research with Backtracking Mechanisms.
+**Paper Title**: Non-Monotonic Autoregressive Sequence Modeling via `<UNDO>` Token  
+**Project**: N-MAR (Non-Monotonic Autoregressive Modeling)
+
+## Overview
+
+Autoregressive models generate sequences monotonically, where any sampled token—even if erroneous or sub-optimal—becomes a permanent condition for all subsequent steps. This rigidity makes them susceptible to **error propagation**, where a single deviation causes the generation trajectory to drift irreversibly into low-probability regions.
+
+We propose a **Non-Monotonic Autoregressive (N-MAR)** sequence modeling framework that empowers autoregressive models to sample sequences non-monotonically via a single `<UNDO>` token.
+
+### Key Mechanism
+1.  **`<UNDO>` Token**: A special token that functionally deletes the preceding token from the sequence, allowing the model to prune divergent trajectories.
+2.  **Training Pipeline**:
+    *   **Augmentation**: Synthesize trajectories that demonstrate recovery from deviations (Error $\to$ `<UNDO>` $\to$ Correction).
+    *   **Masked SFT**: Train on these traces while masking the loss for error tokens to prevent negative learning.
+    *   **GRPO Refinement**: Optimize the policy to use `<UNDO>` efficiently (pruning bad paths without excessive backtracking).
 
 ## Installation
 
@@ -35,10 +49,10 @@ pip install flash-attn  # Only if needed
 
 ```
 Halluc/
-├── llmhalluc/          # Main package
-├── configs/            # Training configs
+├── llmhalluc/          # Main package (N-MAR implementation)
+├── configs/            # Training configs (SFT, GRPO)
 ├── lm-evaluation-harness/  # Eval framework
-└── scripts/            # Installation scripts
+└── scripts/            # Installation & Cluster scripts
 ```
 
 ### Scripts

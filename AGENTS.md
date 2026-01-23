@@ -1,4 +1,4 @@
-# HALLUC - LLM Backtracking Research
+# N-MAR - Non-Monotonic Autoregressive Sequence Modeling
 
 **Generated:** 2026-01-14 | **Commit:** 39d0acb1 | **Branch:** main
 
@@ -16,7 +16,7 @@ When modifying code, focus on correctness and clarity. Do not add compatibility 
 
 ## OVERVIEW
 
-LLM hallucination mitigation via **backtracking mechanisms** - models learn to self-correct by generating `<|BACKTRACK|>` tokens that functionally delete preceding tokens. Built on HuggingFace ecosystem (transformers, trl, peft) with lm-evaluation-harness for eval.
+**Non-Monotonic Autoregressive Modeling (N-MAR)** empowers models to sample sequences non-monotonically via a single `<UNDO>` token. This allows models to prune divergent trajectories (where a single deviation drifts into low-probability regions) and self-correct efficiently.
 
 ## STRUCTURE
 
@@ -27,7 +27,7 @@ Halluc/
 │   ├── run_eval.py      # Entry: python -m llmhalluc.run_eval
 │   ├── run_exp.py       # Combined train→eval pipeline
 │   ├── train/           # SFT, DPO, GRPO executors
-│   ├── data/            # Dataset converters (backtrack injection)
+│   ├── data/            # Dataset converters (trajectory injection)
 │   ├── reward/          # GRPO reward functions (bt.py = core)
 │   ├── models/          # Model loading, patcher, PEFT
 │   ├── hparams/         # Argument dataclasses + config parsing
@@ -62,8 +62,8 @@ Halluc/
 | `BaseExecutor` | Class | train/base.py | Training lifecycle (tokenizer→model→dataset→trainer) |
 | `GRPOExecutor` | Class | train/grpo.py | Group Relative Policy Optimization |
 | `BacktrackRewardFunction` | Class | reward/bt.py | Multi-component reward (outcome + efficiency + process) |
-| `BacktrackDatasetConverter` | Class | data/backtrack.py | Injects error→backtrack→correction sequences |
-| `_apply_backtracking` | Func | models/helper.py | Token-level backtrack logic (pop on BACKTRACK token) |
+| `BacktrackDatasetConverter` | Class | data/backtrack.py | Injects error→undo→correction sequences |
+| `_apply_backtracking` | Func | models/helper.py | Token-level undo logic (pop on UNDO token) |
 | `run_train` | Func | train/__init__.py | Dispatcher to stage-specific executors |
 | `run_eval` | Func | eval/base.py | Wraps lm_eval.simple_evaluate |
 
@@ -100,23 +100,23 @@ Custom lm-eval tasks use **YAML+Python pairs**:
 | DO NOT | WHY |
 |--------|-----|
 | Modify KV-cache or attention mask for backtracking | Research proved ineffective - use token-based approach |
-| Train model to generate error tokens | Only train to DETECT errors (backtrack) and CORRECT |
-| Use easily-gamed reward structures | Risk of "always backtrack" exploitation |
+| Train model to generate error tokens | Only train to DETECT errors (undo) and CORRECT |
+| Use easily-gamed reward structures | Risk of "always undo" exploitation |
 | Skip curriculum learning in GRPO | Required to prevent reward hacking |
 | Run training in `lm_eval` env (or vice versa) | Dependency conflicts will break |
 | Use `@ts-ignore` / `as any` equivalents | N/A Python project |
 
-## BACKTRACKING MECHANISM
+## NON-MONOTONIC MECHANISM
 
-Core innovation - `<|BACKTRACK|>` token acts as functional backspace:
+Core innovation - `<UNDO>` token acts as functional backspace:
 
-1. **Token Logic** (`models/helper.py`): When model generates BACKTRACK, pop previous token from sequence
-2. **Data Augmentation** (`data/backtrack.py`): Insert synthetic error→backtrack→correction sequences
+1. **Token Logic** (`models/helper.py`): When model generates `<UNDO>`, pop previous token from sequence.
+2. **Data Augmentation** (`data/backtrack.py`): Insert synthetic error→undo→correction sequences.
 3. **Reward System** (`reward/bt.py`):
-   - `outcome_accuracy`: Correctness AFTER applying backtracks
-   - `backtrack_efficiency`: Penalize unnecessary, reward successful corrections
-   - `process_quality`: Step-by-step reasoning evaluation
-4. **Curriculum**: Shift from process→outcome focus as training progresses
+   - `outcome_accuracy`: Correctness AFTER applying undo operations.
+   - `backtrack_efficiency`: Penalize unnecessary undo, reward successful corrections.
+   - `process_quality`: Step-by-step reasoning evaluation.
+4. **Curriculum**: Shift from process→outcome focus as training progresses.
 
 ## COMMANDS
 
@@ -163,7 +163,7 @@ python -m llmhalluc.run_exp --config configs/llmhalluc/e2e.yaml
 - **No CI/CD**: No GitHub Actions. Tests via lm-evaluation-harness, not pytest
 - **Cluster scripts reference `./bash/`**: May need path fixes to `./scripts/sys/`
 - **Constants**: `llmhalluc/extras/constant.py` is single source of truth for special tokens, paths
-- **Model-specific tokens**: Llama3 uses `<|reserved_special_token_0|>`, Qwen3 uses `<|BACKTRACK|>`
+- **Model-specific tokens**: Llama3 uses `<|reserved_special_token_0|>`, Qwen3 uses `<UNDO>`
 
 
 ## AGENTS

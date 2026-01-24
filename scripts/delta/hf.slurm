@@ -2,11 +2,11 @@
 #SBATCH --job-name="llmhalluc"
 #SBATCH --account=bgdn-delta-gpu
 #SBATCH --partition=gpuA100x4
-#SBATCH --mem=240G
+#SBATCH --mem=128G
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --gpus-per-node=2
+#SBATCH --gpus-per-node=1
 #SBATCH --gpu-bind=closest
 #SBATCH --no-requeue
 #SBATCH -t 08:00:00
@@ -20,9 +20,8 @@ cd ~/Halluc
 source ./scripts/delta/bashrc.sh
 conda activate llmhalluc
 
-
-accelerate launch -m llmhalluc.run_exp \
-    --config ./configs/llmhalluc/gsm8k/masked_sft.yaml \
-    --model_name_or_path "meta-llama/Llama-3.1-8b" \
-    --report_to "" 
-
+accelerate launch -m lm_eval \
+    --tasks squadv2 \
+    --model_args pretrained=meta-llama/Llama-3.1-8B \
+    --output_path ./outputs/llama-3.1-8b/squadv2/vanilla/eval/squadv2/results.json \
+    --log_samples

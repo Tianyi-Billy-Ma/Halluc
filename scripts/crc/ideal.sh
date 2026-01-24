@@ -28,8 +28,8 @@ TOKENIZER_NAME_OR_PATH="Qwen/Qwen3-4B-Base"
 #     --model_name_or_path ${MODEL_NAME_OR_PATH} 
 
 accelerate launch -m lm_eval \
-    --tasks gsm8k_simple \
+    --tasks mbpp \
     --include_path ./configs/lm_eval/tasks \
     --model_args pretrained=${MODEL_NAME_OR_PATH},trust_remote_code=True \
-    --output_path ./outputs/qwen3-4b/gsm8k/vanilla/eval/gsm8k/results.json \
+    --output_path ./outputs/qwen3-4b/mbpp/vanilla/eval/results.json \
     --log_samples

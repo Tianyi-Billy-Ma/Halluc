@@ -33,4 +33,5 @@ accelerate launch -m lm_eval \
     --include_path ./configs/lm_eval/tasks \
     --model_args pretrained=${MODEL_NAME_OR_PATH},trust_remote_code=True \
     --output_path ./outputs/qwen3-4b/mbpp/vanilla/eval/results.json \
-    --log_samples
+    --log_samples \
+    --confirm_run_unsafe_code

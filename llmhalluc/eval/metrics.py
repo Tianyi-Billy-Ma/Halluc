@@ -1,9 +1,9 @@
 from lm_eval.api.registry import register_aggregation, register_metric
-from rouge_score import rouge_scorer
 
 
 def _compute_rouge(items, rouge_type):
-    """Compute ROUGE score for a list of (reference, prediction) pairs."""
+    from rouge_score import rouge_scorer
+
     scorer = rouge_scorer.RougeScorer([rouge_type], use_stemmer=True)
     refs, preds = zip(*items)
     scores = [

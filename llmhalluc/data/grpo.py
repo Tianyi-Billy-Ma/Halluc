@@ -1,11 +1,14 @@
 """GRPO dataset converter for TRL GRPOTrainer."""
 
-from dataclasses import dataclass, field
-from typing import Any
+from __future__ import annotations
 
-from transformers import PreTrainedTokenizer
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from .base import DatasetConverter
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizer
 
 
 @dataclass

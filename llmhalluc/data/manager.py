@@ -1,4 +1,6 @@
-from datasets import Dataset, DatasetDict, load_dataset
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from llmhalluc.utils import wrap_converter_with_replace
 
@@ -17,6 +19,9 @@ from .gsm8k import (
 )
 from .sft import SFTDatasetConverter
 from .squad import SquadDatasetConverter
+
+if TYPE_CHECKING:
+    from datasets import Dataset, DatasetDict
 
 DATASET_CONVERTERS = {
     "squad": SquadDatasetConverter,
@@ -64,6 +69,8 @@ def get_dataset(
     converter_args: dict | None = None,
     replace_text: dict[str, str] | None = None,
 ) -> Dataset | DatasetDict:
+    from datasets import load_dataset
+
     dataset = load_dataset(dataset_path, name=name, split=split)
     if converter:
         mapping_args = {}

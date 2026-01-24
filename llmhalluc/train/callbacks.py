@@ -1,12 +1,17 @@
 """Training callbacks for Hugging Face Trainer."""
 
-from transformers import EarlyStoppingCallback, TrainerCallback
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from transformers import TrainerCallback
 
 
 def get_early_stopping_callback(
     early_stopping_patience: int = 3,
     early_stopping_threshold: float = 0.0,
-) -> TrainerCallback:
+):
     """Create an EarlyStoppingCallback.
 
     Args:
@@ -18,6 +23,8 @@ def get_early_stopping_callback(
     Returns:
         EarlyStoppingCallback configured with the given parameters.
     """
+    from transformers import EarlyStoppingCallback
+
     return EarlyStoppingCallback(
         early_stopping_patience=early_stopping_patience,
         early_stopping_threshold=early_stopping_threshold,

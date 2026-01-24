@@ -1,7 +1,5 @@
 """DPO training executor for TRL DPOTrainer."""
 
-from trl import DPOTrainer
-
 from llmhalluc.hparams.ft_args import DPOArguments
 
 from .base import BaseExecutor
@@ -19,6 +17,8 @@ class DPOExecutor(BaseExecutor):
 
     def _get_trainer_class(self):
         """Return DPOTrainer class for preference optimization."""
+        from trl import DPOTrainer
+
         return DPOTrainer
 
     def _get_dataset_converter(self):

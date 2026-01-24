@@ -1,13 +1,17 @@
 """Backtrack dataset converter."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from transformers import PreTrainedTokenizer
 
 from .base import DatasetConverter
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizer
 
 BACKTRACK_TOKEN = "<|BACKTRACK|>"
 

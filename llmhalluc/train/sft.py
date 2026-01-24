@@ -2,9 +2,6 @@
 
 import logging
 
-from trl import SFTTrainer
-
-from llmhalluc.data.collator import BacktrackMaskingCollator
 from llmhalluc.hparams.ft_args import SFTArguments
 
 from .base import BaseExecutor
@@ -21,6 +18,8 @@ class SFTExecutor(BaseExecutor):
 
     def _get_trainer_class(self):
         """Return SFTTrainer class for supervised fine-tuning."""
+        from trl import SFTTrainer
+
         return SFTTrainer
 
     def _get_dataset_converter(self) -> str:
@@ -41,6 +40,8 @@ class BacktrackSFTExecutor(SFTExecutor):
 
     def setup_trainer(self):
         """Setup trainer with custom BacktrackMaskingCollator."""
+        from llmhalluc.data.collator import BacktrackMaskingCollator
+
         trainer_class = self._get_trainer_class()
 
         # Build LoRA config if using PEFT

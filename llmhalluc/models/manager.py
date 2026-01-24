@@ -1,8 +1,13 @@
 """Model and tokenizer loading utilities."""
 
-from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from .patcher import patch_model, patch_tokenizer
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizer
 
 
 def get_model(
@@ -22,6 +27,8 @@ def get_model(
     Returns:
         Loaded and patched model
     """
+    from transformers import AutoModelForCausalLM
+
     model = AutoModelForCausalLM.from_pretrained(model_name_or_path, **kwargs)
     model = patch_model(model, tokenizer=tokenizer, args=args)
     return model
@@ -38,6 +45,8 @@ def get_tokenizer(tokenizer_name_or_path: str, args=None, **kwargs):
     Returns:
         Loaded and patched tokenizer
     """
+    from transformers import AutoTokenizer
+
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path, **kwargs)
     tokenizer = patch_tokenizer(tokenizer, args=args)
     return tokenizer

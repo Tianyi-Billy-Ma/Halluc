@@ -1,16 +1,20 @@
 """Backtrack dataset converter."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from transformers import PreTrainedTokenizer
 
 from ..prompts import PROMPT_REGISTRY, get_prompt
 from ..utils.alg_utils import cs_alg
 from .backtrack import BACKTRACK_TOKEN
 from .base import DatasetConverter
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizer
 
 logger = logging.getLogger(__name__)
 

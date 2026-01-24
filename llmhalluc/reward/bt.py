@@ -16,12 +16,15 @@ Based on research from:
 - Curriculum Learning for RL
 """
 
-from dataclasses import dataclass, field
-from typing import Any
+from __future__ import annotations
 
-from transformers import TrainerState
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from .base import BaseRewardFunction
+
+if TYPE_CHECKING:
+    from transformers import TrainerState
 
 
 def _apply_backtracking(token_ids: list[int], backtrack_token_id: int) -> list[int]:

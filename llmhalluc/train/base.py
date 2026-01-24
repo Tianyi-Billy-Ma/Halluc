@@ -1,15 +1,8 @@
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
-
-import torch
-from datasets import Dataset, DatasetDict, load_dataset
-from peft import LoraConfig, TaskType
-from transformers import (
-    BitsAndBytesConfig,
-    PreTrainedModel,
-    PreTrainedTokenizer,
-    Trainer,
-)
+from typing import TYPE_CHECKING
 
 from llmhalluc.data import DatasetConverter, get_dataset_converter, load_data_config
 from llmhalluc.hparams import DPOArguments, GRPOArguments, SFTArguments
@@ -17,6 +10,10 @@ from llmhalluc.models import get_model, get_tokenizer
 from llmhalluc.utils import print_dataset, process_dataset, wrap_converter_with_replace
 
 from .callbacks import get_callbacks
+
+if TYPE_CHECKING:
+    from datasets import Dataset, DatasetDict
+    from transformers import PreTrainedModel, PreTrainedTokenizer, Trainer
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +105,8 @@ class BaseExecutor(ABC):
         if finetuning_type not in ["lora", "qlora"]:
             return None
 
+        from peft import LoraConfig, TaskType
+
         # Parse lora_target into list of module names or 'all-linear'
         lora_target = getattr(self.args, "lora_target", "all")
         if lora_target == "all":
@@ -136,6 +135,9 @@ class BaseExecutor(ABC):
         if finetuning_type != "qlora" and not load_in_4bit:
             return None
 
+        import torch
+        from transformers import BitsAndBytesConfig
+
         compute_dtype_str = getattr(self.args, "bnb_4bit_compute_dtype", "bfloat16")
         compute_dtype = getattr(torch, compute_dtype_str, torch.bfloat16)
 
@@ -163,6 +165,8 @@ class BaseExecutor(ABC):
 
         Requires tokenizer to be set up first for embedding resize.
         """
+        import torch
+
         model_kwargs = {
             "low_cpu_mem_usage": True,
             "trust_remote_code": getattr(self.args, "trust_remote_code", True),
@@ -195,6 +199,8 @@ class BaseExecutor(ABC):
         Returns:
             Processed dataset ready for training/evaluation
         """
+        from datasets import load_dataset
+
         data_config = load_data_config()
 
         dataset_info = data_config.get(dataset_key)
@@ -259,6 +265,8 @@ class BaseExecutor(ABC):
         Loads train and eval datasets separately from their configured
         HuggingFace Hub URLs in dataset_info.json and applies the appropriate converter.
         """
+        from datasets import DatasetDict
+
         # Load train dataset
         train_dataset = self._get_dataset(self.args.dataset, split_type="train")
         self.dataset = DatasetDict({"train": train_dataset})
@@ -309,6 +317,8 @@ class BaseExecutor(ABC):
         return self.train_result
 
     def on_train_start(self):
+        import torch
+
         torch.cuda.empty_cache()
 
     def on_train_end(self):

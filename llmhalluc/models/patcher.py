@@ -1,12 +1,16 @@
 """Model and tokenizer patching utilities."""
 
-import logging
+from __future__ import annotations
 
-from transformers import PreTrainedModel, PreTrainedTokenizer
+import logging
+from typing import TYPE_CHECKING
 
 from llmhalluc.extras.template import DEFAULT_CHAT_TEMPLATE
 
 from .embedding import resize_embedding_layer
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedModel, PreTrainedTokenizer
 
 logger = logging.getLogger(__name__)
 

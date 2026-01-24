@@ -2,8 +2,6 @@
 
 import logging
 
-from trl import GRPOTrainer
-
 from llmhalluc.hparams.ft_args import GRPOArguments
 from llmhalluc.reward import get_reward_functions
 
@@ -95,6 +93,8 @@ class GRPOExecutor(BaseExecutor):
 
     def _get_trainer_class(self):
         """Return GRPOTrainer class for GRPO training."""
+        from trl import GRPOTrainer
+
         return GRPOTrainer
 
     def _get_dataset(self, dataset_key: str, split_type: str = "train"):

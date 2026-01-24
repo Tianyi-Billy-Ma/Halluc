@@ -1,18 +1,18 @@
 import logging
 
-from lm_eval import simple_evaluate
-from lm_eval.loggers import EvaluationTracker, WandbLogger
-from lm_eval.tasks import TaskManager
-
-import llmhalluc.eval.metrics  # noqa: F401
-import llmhalluc.models  # noqa: F401
-from llmhalluc.hparams import EvaluationArguments, load_config
-from llmhalluc.utils import is_rank_zero
-
 logger = logging.getLogger(__name__)
 
 
 def run_eval(config_path: str):
+    from lm_eval import simple_evaluate
+    from lm_eval.loggers import EvaluationTracker, WandbLogger
+    from lm_eval.tasks import TaskManager
+
+    import llmhalluc.eval.metrics  # noqa: F401
+    import llmhalluc.models  # noqa: F401
+    from llmhalluc.hparams import EvaluationArguments, load_config
+    from llmhalluc.utils import is_rank_zero
+
     eval_config = load_config(config_path)
 
     model = eval_config.get("model", "hf")

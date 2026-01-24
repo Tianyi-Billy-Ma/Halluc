@@ -1,15 +1,24 @@
 """Data collators for backtrack training."""
 
-from dataclasses import dataclass, field
-from typing import Any
+from __future__ import annotations
 
-import torch
-from transformers import PreTrainedTokenizer
-from transformers.data.data_collator import DataCollatorMixin
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import torch
+    from transformers import PreTrainedTokenizer
+
+
+def _get_torch():
+    """Lazy import of torch."""
+    import torch
+
+    return torch
 
 
 @dataclass
-class BacktrackMaskingCollator(DataCollatorMixin):
+class BacktrackMaskingCollator:
     """
     Data collator that masks error tokens from loss computation.
 

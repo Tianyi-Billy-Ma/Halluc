@@ -11,7 +11,7 @@ MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Base"
 ADAPTER_NAME_OR_PATH="/users/tma2/Projects/Halluc/outputs/qwen3-4b/squad_v2/sft/lora/train"
 TOKENIZER_NAME_OR_PATH="Qwen/Qwen3-4B-Base"
 
-HF_ALLOW_CODE_EVAL=1
+export HF_ALLOW_CODE_EVAL=1
 
 # accelerate launch -m llmhalluc.run_eval \
 #     --config ./configs/llmhalluc/backtrack_sft.yaml 

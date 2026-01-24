@@ -29,9 +29,9 @@ export HF_ALLOW_CODE_EVAL=1
 #     --model_name_or_path ${MODEL_NAME_OR_PATH} 
 
 accelerate launch -m lm_eval \
-    --tasks mbpp \
+    --tasks minerva_math500 \
     --include_path ./configs/lm_eval/tasks \
     --model_args pretrained=${MODEL_NAME_OR_PATH},trust_remote_code=True \
-    --output_path ./outputs/qwen3-4b/mbpp/vanilla/eval/results.json \
+    --output_path ./outputs/qwen3-4b/math500/vanilla/eval/results.json \
     --log_samples \
     --confirm_run_unsafe_code

@@ -5,9 +5,11 @@ conda activate llmhalluc
 
 
 
-MODEL_NAME_OR_PATH="mistralai/Ministral-3-3B-Base-2512"
-ADAPTER_NAME_OR_PATH="/users/tma2/Projects/Halluc/outputs/ministral-3-3b/squad_v2/sft/lora/train"
-TOKENIZER_NAME_OR_PATH="mistralai/Ministral-3-3B-Base-2512"
+# Qwen3-4B-Base: 4B pretrained model, requires transformers>=4.51.0
+# Compatible with current environment (no transformers 5.0 needed)
+MODEL_NAME_OR_PATH="Qwen/Qwen3-4B-Base"
+ADAPTER_NAME_OR_PATH="/users/tma2/Projects/Halluc/outputs/qwen3-4b/squad_v2/sft/lora/train"
+TOKENIZER_NAME_OR_PATH="Qwen/Qwen3-4B-Base"
 
 
 # accelerate launch -m llmhalluc.run_eval \
@@ -27,6 +29,6 @@ TOKENIZER_NAME_OR_PATH="mistralai/Ministral-3-3B-Base-2512"
 
 accelerate launch -m lm_eval \
     --tasks squadv2 \
-    --model_args pretrained=${MODEL_NAME_OR_PATH} \
-    --output_path ./outputs/ministral-3-3b/squadv2/cot/eval/squadv2/ \
+    --model_args pretrained=${MODEL_NAME_OR_PATH},trust_remote_code=True \
+    --output_path ./outputs/qwen3-4b/squadv2/vanilla/eval/ \
     --log_samples

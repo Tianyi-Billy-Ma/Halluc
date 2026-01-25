@@ -3,10 +3,15 @@ import logging
 from pathlib import Path
 
 from easydict import EasyDict
-from omegaconf import OmegaConf
 from transformers import HfArgumentParser
 
 from llmhalluc.utils.sys_utils import resolve_path
+from llmhalluc.utils.yaml_utils import (
+    deep_merge,
+    from_dotlist,
+    load_yaml,
+    save_yaml,
+)
 
 from .eval_args import EvaluationArguments
 from .ft_args import DPOArguments, GRPOArguments, SFTArguments
@@ -141,30 +146,25 @@ def parse_config_arg(
 
 
 def load_config(path: str | Path) -> dict[str, any]:
-    cfg_path = resolve_path(path)
+    cfg_path = resolve_path(str(path))
     if not cfg_path.exists():
         raise FileNotFoundError(f"Config file not found: {cfg_path}")
 
     if cfg_path.suffix == ".yaml":
-        cfg = OmegaConf.load(cfg_path)
-        return OmegaConf.to_container(cfg, resolve=True) or {}
+        return load_yaml(cfg_path)
     elif cfg_path.suffix == ".json":
         with open(cfg_path, "r") as f:
             return json.load(f)
     else:
         raise ValueError(f"Unsupported config file type: {cfg_path.suffix}")
 
-    logger.info(f"Loaded config from {cfg_path}")
-
 
 def apply_overrides(config: dict[str, any], overrides: list[str]) -> dict[str, any]:
     if not overrides:
         return dict(config)
 
-    base_conf = OmegaConf.create(config)
-    override_conf = OmegaConf.from_dotlist(overrides)
-    merged = OmegaConf.merge(base_conf, override_conf)
-    return OmegaConf.to_container(merged, resolve=True)
+    override_dict = from_dotlist(overrides)
+    return deep_merge(config, override_dict)
 
 
 def parse_cli_to_dotlist(args: list[str]) -> list[str]:
@@ -202,9 +202,9 @@ def parse_cli_to_dotlist(args: list[str]) -> list[str]:
 
 
 def save_config(args: dict[str, any], path: str | Path) -> None:
-    cfg_path = resolve_path(path)
+    cfg_path = resolve_path(str(path))
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
-    OmegaConf.save(OmegaConf.create(args), cfg_path)
+    save_yaml(args, cfg_path)
     logger.info(f"Saved config to {str(cfg_path)}")
 
 

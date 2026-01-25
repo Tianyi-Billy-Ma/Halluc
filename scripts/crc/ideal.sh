@@ -22,7 +22,7 @@ export HF_ALLOW_CODE_EVAL=1
 # Step 2: Evaluation using lm_eval
 # ==============================================================================
 accelerate launch -m lm_eval --model hf \
-    --model_args pretrained=${MODEL_NAME_OR_PATH},peft=${OUTPUT_DIR}/train,trust_remote_code=True \
+    --model_args pretrained=${MODEL_NAME_OR_PATH},peft=${OUTPUT_DIR}/train/train,trust_remote_code=True \
     --tasks gsm8k_simple \
     --include_path ./configs/lm_eval/tasks \
     --output_path ${OUTPUT_DIR}/eval/results.json \

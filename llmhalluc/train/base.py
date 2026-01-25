@@ -53,22 +53,22 @@ class BaseExecutor(ABC):
 
         # IMPORTANT: Setup tokenizer BEFORE model because model resize
         # depends on tokenizer length when adding special tokens
-        if not isinstance(tokenizer, PreTrainedTokenizer):
+        if not tokenizer or not isinstance(tokenizer, PreTrainedTokenizer):
             self.setup_tokenizer()
         else:
             self.tokenizer = tokenizer
 
-        if not isinstance(model, PreTrainedModel):
+        if not model or not isinstance(model, PreTrainedModel):
             self.setup_model()
         else:
             self.model = model
 
-        if not isinstance(dataset, DatasetDict | Dataset):
+        if not dataset or not isinstance(dataset, DatasetDict | Dataset):
             self.setup_dataset()
         else:
             self.dataset = dataset
 
-        if not isinstance(trainer, Trainer):
+        if not trainer or not isinstance(trainer, Trainer):
             self.setup_trainer()
         else:
             self.trainer = trainer

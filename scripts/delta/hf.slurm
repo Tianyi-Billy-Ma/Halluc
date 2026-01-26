@@ -21,8 +21,8 @@ source ./scripts/delta/bashrc.sh
 conda activate llmhalluc
 
 accelerate launch -m lm_eval \
-    --tasks squadv2 \
+    --tasks gsm8k_simple \
     --include_path ./configs/lm_eval/tasks \
     --model_args pretrained=qwen/Qwen3-4B-Base \
-    --output_path ./outputs/qwen3-4b/squadv2/vanilla/eval/squadv2/results.json \
+    --output_path ./outputs/qwen3-4b/gsm8k/vanilla/eval/results.json \
     --log_samples

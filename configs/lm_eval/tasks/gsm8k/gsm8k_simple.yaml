@@ -44,7 +44,7 @@ generation_kwargs:
   max_gen_toks: 2048
 
 repeats: 1
-num_fewshot: 5
+num_fewshot: 8
 
 metadata:
   version: 3.0
